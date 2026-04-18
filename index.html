@@ -1,312 +1,541 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HSC 2026 - SHAHRIAR NAIM SPECIAL</title>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;800&family=Poppins:wght@300;600;900&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --primary: #00f2ff;
-            --accent: #ff0055;
-            --deep-dark: #000000;
-            --card-bg: rgba(10, 10, 10, 0.7);
-            --border-glow: rgba(0, 242, 255, 0.3);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MISSION HSC 26 — Shahriar Naim</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;500;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cyan: #00e5ff;
+    --red: #ff2b4e;
+    --gold: #ffc200;
+    --bg: #060810;
+    --surface: rgba(255,255,255,0.03);
+    --border: rgba(255,255,255,0.07);
+    --text: #e8eaf0;
+    --muted: #555870;
+  }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
-        }
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
 
-        body {
-            background-color: var(--deep-dark);
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            overflow: hidden;
-            position: relative;
-        }
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    overflow-x: hidden;
+  }
 
-        /* Particles Background Effect */
-        .stars {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(2px 2px at 20px 30px, #eee, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 40px 70px, #fff, rgba(0,0,0,0)),
-                        radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0,0,0,0));
-            background-repeat: repeat;
-            background-size: 200px 200px;
-            opacity: 0.3;
-            animation: starsAnim 100s linear infinite;
-        }
+  /* ── GRID BACKGROUND ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridDrift 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes gridDrift { from{background-position:0 0} to{background-position:0 60px} }
 
-        @keyframes starsAnim {
-            from { transform: translateY(0); }
-            to { transform: translateY(-1000px); }
-        }
+  /* ── SCANLINE OVERLAY ── */
+  body::after {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 3px,
+      rgba(0,0,0,0.08) 3px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
 
-        .container {
-            position: relative;
-            z-index: 10;
-            width: 95%;
-            max-width: 1100px;
-            text-align: center;
-        }
+  /* ── AMBIENT GLOW ORBS ── */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(120px);
+    opacity: 0.12;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .orb1 { width:500px; height:500px; background:var(--cyan); top:-150px; left:-100px; animation: orbFloat 12s ease-in-out infinite; }
+  .orb2 { width:400px; height:400px; background:var(--red); bottom:-100px; right:-80px; animation: orbFloat 15s ease-in-out infinite reverse; }
+  @keyframes orbFloat {
+    0%,100%{transform:translate(0,0)}
+    50%{transform:translate(30px,40px)}
+  }
 
-        /* Premium Title */
-        h1 {
-            font-size: clamp(2rem, 6vw, 4rem);
-            font-weight: 900;
-            text-transform: uppercase;
-            letter-spacing: 12px;
-            margin-bottom: 5px;
-            background: linear-gradient(180deg, #fff 0%, #444 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
-        }
+  /* ── LAYOUT ── */
+  .wrapper {
+    position: relative; z-index: 1;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 20px 80px;
+    gap: 40px;
+  }
 
-        .target-label {
-            color: var(--primary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 1.1rem;
-            letter-spacing: 6px;
-            margin-bottom: 50px;
-            opacity: 0.8;
-        }
+  /* ── HEADER ── */
+  .header { text-align: center; }
 
-        /* Countdown Grid */
-        .countdown-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 25px;
-            margin-bottom: 50px;
-        }
+  .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(0,229,255,0.3);
+    border-radius: 100px;
+    padding: 5px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--cyan);
+    margin-bottom: 20px;
+    animation: fadeSlideDown 0.8s ease both;
+  }
+  .badge-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--cyan);
+    animation: blink 1.4s ease-in-out infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
 
-        .unit-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.05);
-            padding: 35px 20px;
-            border-radius: 24px;
-            backdrop-filter: blur(10px);
-            position: relative;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+  .title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3.5rem, 12vw, 8rem);
+    line-height: 0.9;
+    letter-spacing: 4px;
+    color: #fff;
+    animation: fadeSlideDown 0.8s 0.1s ease both;
+    position: relative;
+  }
+  .title .cyan { color: var(--cyan); }
+  .title .red  { color: var(--red);  }
 
-        .unit-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: 24px;
-            padding: 1.5px;
-            background: linear-gradient(135deg, var(--primary), transparent, var(--accent));
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-mask(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            opacity: 0.2;
-            transition: opacity 0.3s;
-        }
+  /* Glitch effect on hover */
+  .title:hover { animation: glitch 0.4s steps(1) infinite; }
+  @keyframes glitch {
+    0%   { text-shadow: 3px 0 var(--red), -3px 0 var(--cyan); }
+    25%  { text-shadow: -3px 0 var(--red), 3px 0 var(--cyan); clip-path: inset(20% 0 60% 0); }
+    50%  { text-shadow: 3px 0 var(--cyan), -3px 0 var(--red); }
+    75%  { text-shadow: -3px 0 var(--cyan), 3px 0 var(--red); clip-path: inset(60% 0 10% 0); }
+    100% { text-shadow: none; clip-path: none; }
+  }
 
-        .unit-card:hover {
-            transform: scale(1.05) translateY(-10px);
-            border-color: var(--primary);
-            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
-        }
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 6px;
+    color: var(--muted);
+    margin-top: 12px;
+    animation: fadeSlideDown 0.8s 0.2s ease both;
+  }
+  .subtitle span { color: var(--gold); }
 
-        .unit-card:hover::before {
-            opacity: 1;
-        }
+  @keyframes fadeSlideDown {
+    from { opacity:0; transform: translateY(-20px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
 
-        .value {
-            font-size: clamp(3rem, 7vw, 5rem);
-            font-weight: 800;
-            line-height: 1;
-            font-family: 'JetBrains Mono', monospace;
-            background: linear-gradient(180deg, #fff 30%, var(--primary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+  /* ── COUNTDOWN CARDS ── */
+  .countdown {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    width: 100%;
+    max-width: 800px;
+    animation: fadeUp 0.8s 0.3s ease both;
+  }
 
-        /* Pulse for seconds */
-        #seconds-card .value {
-            background: linear-gradient(180deg, #fff 30%, var(--accent));
-            -webkit-background-clip: text;
-            animation: pulse 1s infinite;
-        }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 16px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(0,229,255,0.4);
+  }
+  .card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .card:hover::before { opacity: 1; }
 
-        @keyframes pulse {
-            0% { filter: brightness(1); }
-            50% { filter: brightness(1.5) drop-shadow(0 0 15px var(--accent)); }
-            100% { filter: brightness(1); }
-        }
+  .card-rank {
+    position: absolute; top: 10px; right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.55rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+  }
 
-        .label {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: #666;
-            margin-top: 15px;
-        }
+  .card-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(3rem, 8vw, 5.5rem);
+    line-height: 1;
+    color: #fff;
+    display: block;
+    transition: color 0.2s;
+  }
+  .card:hover .card-value { color: var(--cyan); }
 
-        /* Dynamic Progress Section */
-        .progress-box {
-            background: rgba(255,255,255,0.02);
-            padding: 30px;
-            border-radius: 30px;
-            border: 1px solid rgba(255,255,255,0.03);
-        }
+  .card-seconds .card-value {
+    color: var(--red);
+    animation: secPulse 1s ease-in-out infinite;
+  }
+  @keyframes secPulse {
+    0%,100%{opacity:1} 50%{opacity:0.6}
+  }
 
-        .bar-container {
-            height: 8px;
-            background: #111;
-            border-radius: 10px;
-            overflow: hidden;
-            margin-bottom: 15px;
-            box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
-        }
+  .card-label {
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 10px;
+  }
 
-        .bar-fill {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, var(--primary), var(--accent));
-            box-shadow: 0 0 20px var(--primary);
-            transition: width 1.5s ease;
-        }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(30px) }
+    to   { opacity:1; transform:translateY(0) }
+  }
 
-        .stats {
-            display: flex;
-            justify-content: space-between;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.9rem;
-            color: #888;
-        }
+  /* ── PROGRESS SECTION ── */
+  .progress-section {
+    width: 100%;
+    max-width: 800px;
+    animation: fadeUp 0.8s 0.45s ease both;
+  }
 
-        /* Watermark Styles */
-        .watermark {
-            position: fixed;
-            bottom: 30px;
-            right: 40px;
-            text-align: right;
-        }
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .progress-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 4px;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .progress-pct {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.6rem;
+    color: var(--cyan);
+    letter-spacing: 2px;
+  }
 
-        .name {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 800;
-            font-size: 1.2rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            animation: blinker 2s infinite linear;
-        }
+  .bar-track {
+    height: 6px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 100px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 100px;
+    background: linear-gradient(90deg, var(--cyan) 0%, #7b5ea7 50%, var(--red) 100%);
+    transition: width 1.5s cubic-bezier(0.22,1,0.36,1);
+    position: relative;
+  }
+  .bar-fill::after {
+    content: '';
+    position: absolute; right: 0; top: 50%;
+    transform: translate(50%, -50%);
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: #fff;
+    box-shadow: 0 0 10px var(--cyan);
+  }
 
-        @keyframes blinker {
-            0% { color: var(--primary); text-shadow: 0 0 5px var(--primary); }
-            50% { color: var(--accent); text-shadow: 0 0 20px var(--accent); }
-            100% { color: var(--primary); text-shadow: 0 0 5px var(--primary); }
-        }
+  /* ── STATS ROW ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 800px;
+    animation: fadeUp 0.8s 0.55s ease both;
+  }
 
-        .role {
-            font-size: 0.6rem;
-            letter-spacing: 3px;
-            color: #444;
-            display: block;
-        }
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    transition: border-color 0.3s;
+  }
+  .stat-card:hover { border-color: rgba(255,194,0,0.4); }
+  .stat-value {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2rem;
+    color: var(--gold);
+    display: block;
+  }
+  .stat-label {
+    font-size: 0.6rem;
+    letter-spacing: 3px;
+    color: var(--muted);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
 
-        /* Responsive Grid for Mobile */
-        @media (max-width: 600px) {
-            .countdown-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 15px;
-            }
-            .unit-card { padding: 20px 10px; }
-            .watermark { bottom: 20px; right: 20px; }
-        }
-    </style>
+  /* ── QUOTE BOX ── */
+  .quote-box {
+    width: 100%; max-width: 800px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--cyan);
+    border-radius: 12px;
+    padding: 20px 24px;
+    animation: fadeUp 0.8s 0.65s ease both;
+  }
+  .quote-text {
+    font-size: 0.9rem;
+    font-weight: 300;
+    line-height: 1.7;
+    color: #b0b4c8;
+    font-style: italic;
+    transition: opacity 0.4s ease;
+    min-height: 52px;
+  }
+  .quote-author {
+    margin-top: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    color: var(--cyan);
+  }
+
+  /* ── WATERMARK ── */
+  .watermark {
+    position: fixed;
+    bottom: 24px; right: 28px;
+    text-align: right;
+    z-index: 10;
+  }
+  .watermark-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    font-weight: 700;
+    text-transform: uppercase;
+    animation: nameShimmer 3s ease-in-out infinite;
+  }
+  @keyframes nameShimmer {
+    0%,100%{color:var(--cyan)}
+    50%{color:var(--red)}
+  }
+  .watermark-role {
+    display: block;
+    font-size: 0.5rem;
+    letter-spacing: 3px;
+    color: #333;
+    margin-top: 2px;
+  }
+
+  /* ── CORNER DECORATION ── */
+  .corner {
+    position: fixed;
+    width: 40px; height: 40px;
+    z-index: 2;
+  }
+  .corner-tl { top:20px; left:20px; border-top: 1px solid rgba(0,229,255,0.4); border-left: 1px solid rgba(0,229,255,0.4); }
+  .corner-tr { top:20px; right:20px; border-top: 1px solid rgba(0,229,255,0.4); border-right: 1px solid rgba(0,229,255,0.4); }
+  .corner-bl { bottom:20px; left:20px; border-bottom: 1px solid rgba(0,229,255,0.4); border-left: 1px solid rgba(0,229,255,0.4); }
+  .corner-br { bottom:20px; right:20px; border-bottom: 1px solid rgba(0,229,255,0.4); border-right: 1px solid rgba(0,229,255,0.4); }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 640px) {
+    .countdown { grid-template-columns: repeat(2,1fr); gap: 12px; }
+    .stats-row  { grid-template-columns: repeat(3,1fr); }
+    .wrapper { gap: 28px; }
+  }
+  @media (max-width: 380px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
 </head>
 <body>
 
-    <div class="stars"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
 
-    <div class="container">
-        <h1>MISSION HSC 26</h1>
-        <p class="target-label">10:00 AM • 2 JULY 2026</p>
+<div class="corner corner-tl"></div>
+<div class="corner corner-tr"></div>
+<div class="corner corner-bl"></div>
+<div class="corner corner-br"></div>
 
-        <div class="countdown-grid">
-            <div class="unit-card">
-                <div class="value" id="days">00</div>
-                <div class="label">Days</div>
-            </div>
-            <div class="unit-card">
-                <div class="value" id="hours">00</div>
-                <div class="label">Hours</div>
-            </div>
-            <div class="unit-card">
-                <div class="value" id="minutes">00</div>
-                <div class="label">Minutes</div>
-            </div>
-            <div class="unit-card" id="seconds-card">
-                <div class="value" id="seconds">00</div>
-                <div class="label">Seconds</div>
-            </div>
-        </div>
+<div class="wrapper">
 
-        <div class="progress-box">
-            <div class="bar-container">
-                <div class="bar-fill" id="progress-bar"></div>
-            </div>
-            <div class="stats">
-                <span id="percent">0.00%</span>
-                <span>MISSION PROGRESS</span>
-            </div>
-        </div>
+  <!-- HEADER -->
+  <div class="header">
+    <div class="badge">
+      <div class="badge-dot"></div>
+      ACTIVE MISSION
     </div>
+    <h1 class="title">
+      MISSION<br>
+      <span class="cyan">HSC</span> <span class="red">'26</span>
+    </h1>
+    <p class="subtitle">TARGET: <span>2 JULY 2026 — 10:00 AM</span></p>
+  </div>
 
-    <div class="watermark">
-        <span class="role">DEVELOPED BY</span>
-        <span class="name">SHAHRIAR NAIM OR RASHID</span>
+  <!-- COUNTDOWN -->
+  <div class="countdown">
+    <div class="card">
+      <span class="card-rank">01</span>
+      <span class="card-value" id="days">000</span>
+      <div class="card-label">Days</div>
     </div>
+    <div class="card">
+      <span class="card-rank">02</span>
+      <span class="card-value" id="hours">00</span>
+      <div class="card-label">Hours</div>
+    </div>
+    <div class="card">
+      <span class="card-rank">03</span>
+      <span class="card-value" id="minutes">00</span>
+      <div class="card-label">Minutes</div>
+    </div>
+    <div class="card card-seconds">
+      <span class="card-rank">04</span>
+      <span class="card-value" id="seconds">00</span>
+      <div class="card-label">Seconds</div>
+    </div>
+  </div>
 
-    <script>
-        const targetDate = new Date("July 2, 2026 10:00:00").getTime();
-        const startDate = new Date("April 18, 2026 00:00:00").getTime();
+  <!-- PROGRESS BAR -->
+  <div class="progress-section">
+    <div class="progress-header">
+      <span class="progress-label">Mission Progress</span>
+      <span class="progress-pct" id="pct-display">0.0000%</span>
+    </div>
+    <div class="bar-track">
+      <div class="bar-fill" id="bar"></div>
+    </div>
+  </div>
 
-        function update() {
-            const now = new Date().getTime();
-            const distance = targetDate - now;
-            const total = targetDate - startDate;
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <span class="stat-value" id="total-hours">—</span>
+      <div class="stat-label">Hours Left</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" id="total-mins">—</span>
+      <div class="stat-label">Minutes Left</div>
+    </div>
+    <div class="stat-card">
+      <span class="stat-value" id="weeks-left">—</span>
+      <div class="stat-label">Weeks Left</div>
+    </div>
+  </div>
 
-            if (distance < 0) {
-                document.querySelector(".container").innerHTML = "<h1>MISSION ACCOMPLISHED</h1>";
-                return;
-            }
+  <!-- MOTIVATIONAL QUOTE -->
+  <div class="quote-box">
+    <p class="quote-text" id="quote-text"></p>
+    <p class="quote-author" id="quote-author"></p>
+  </div>
 
-            // Calculations
-            const d = Math.floor(distance / (1000 * 60 * 60 * 24));
-            const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-            const s = Math.floor((distance % (1000 * 60)) / 1000);
+</div>
 
-            // Update DOM
-            document.getElementById("days").innerText = d.toString().padStart(3, '0');
-            document.getElementById("hours").innerText = h.toString().padStart(2, '0');
-            document.getElementById("minutes").innerText = m.toString().padStart(2, '0');
-            document.getElementById("seconds").innerText = s.toString().padStart(2, '0');
+<!-- WATERMARK -->
+<div class="watermark">
+  <span class="watermark-role">Developed by</span>
+  <span class="watermark-name">Shahriar Naim Or Rashid</span>
+</div>
 
-            // Progress
-            const progress = ((total - distance) / total) * 100;
-            const safeProgress = Math.max(0, Math.min(progress, 100));
-            document.getElementById("progress-bar").style.width = safeProgress + "%";
-            document.getElementById("percent").innerText = safeProgress.toFixed(4) + "%";
-        }
+<script>
+  const TARGET = new Date("July 2, 2026 10:00:00").getTime();
+  const START  = new Date("April 18, 2026 00:00:00").getTime();
 
-        setInterval(update, 1000);
-        update();
-    </script>
+  const QUOTES = [
+    { text: "Success is the sum of small efforts, repeated day in and day out.", author: "Robert Collier" },
+    { text: "The secret of getting ahead is getting started. Start now.", author: "Mark Twain" },
+    { text: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
+    { text: "Your future is created by what you do today, not tomorrow.", author: "Robert T. Kiyosaki" },
+    { text: "Believe you can and you're halfway there. The rest is hard work.", author: "Theodore Roosevelt" },
+    { text: "Push yourself, because no one else is going to do it for you.", author: "Unknown" },
+    { text: "Great things never came from comfort zones. Embrace the grind.", author: "Unknown" },
+    { text: "Every hour of studying today is an investment in your tomorrow.", author: "Unknown" },
+    { text: "It always seems impossible until it's done. Keep pushing.", author: "Nelson Mandela" },
+    { text: "The harder you work for something, the greater you'll feel when you achieve it.", author: "Unknown" },
+  ];
+
+  let quoteIndex = 0;
+  function rotateQuote() {
+    const q = QUOTES[quoteIndex % QUOTES.length];
+    const el = document.getElementById('quote-text');
+    el.style.opacity = '0';
+    setTimeout(() => {
+      el.textContent = '"' + q.text + '"';
+      document.getElementById('quote-author').textContent = '— ' + q.author;
+      el.style.opacity = '1';
+    }, 400);
+    quoteIndex++;
+  }
+  rotateQuote();
+  setInterval(rotateQuote, 8000);
+
+  function pad(n, len=2) { return String(n).padStart(len, '0'); }
+
+  function update() {
+    const now = Date.now();
+    const dist = TARGET - now;
+    const total = TARGET - START;
+
+    if (dist <= 0) {
+      document.querySelector('.wrapper').innerHTML =
+        '<h1 style="font-family:Bebas Neue,sans-serif;font-size:5rem;color:#00e5ff;letter-spacing:6px;text-align:center;">MISSION ACCOMPLISHED</h1>';
+      return;
+    }
+
+    const d = Math.floor(dist / 86400000);
+    const h = Math.floor((dist % 86400000) / 3600000);
+    const m = Math.floor((dist % 3600000) / 60000);
+    const s = Math.floor((dist % 60000) / 1000);
+
+    document.getElementById('days').textContent    = pad(d, 3);
+    document.getElementById('hours').textContent   = pad(h);
+    document.getElementById('minutes').textContent = pad(m);
+    document.getElementById('seconds').textContent = pad(s);
+
+    const totalHours = Math.floor(dist / 3600000);
+    const totalMins  = Math.floor(dist / 60000);
+    const weeks      = Math.floor(d / 7);
+
+    document.getElementById('total-hours').textContent = totalHours.toLocaleString();
+    document.getElementById('total-mins').textContent  = totalMins.toLocaleString();
+    document.getElementById('weeks-left').textContent  = weeks;
+
+    const pct = Math.min(((total - dist) / total) * 100, 100);
+    document.getElementById('bar').style.width = pct + '%';
+    document.getElementById('pct-display').textContent = pct.toFixed(4) + '%';
+  }
+
+  update();
+  setInterval(update, 1000);
+</script>
 </body>
 </html>
