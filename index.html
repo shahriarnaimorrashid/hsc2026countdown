@@ -18,15 +18,40 @@
   --bd: rgba(255,255,255,.07);
   --tx: #dde2f0;
   --mu: #3a3f5c;
+  --card-bg: rgba(10, 15, 25, 0.6);
   --ease: cubic-bezier(.22,1,.36,1);
   --spring: cubic-bezier(.34,1.56,.64,1);
+  
+  /* Light mode defaults (overridden by .light-mode class) */
+  --bg-light: #f4f6fa;
+  --tx-light: #1a1e2b;
+  --mu-light: #5b6a8c;
+  --bd-light: rgba(0,0,0,.08);
+  --s0-light: rgba(0,0,0,.02);
+  --card-bg-light: rgba(255,255,255,.75);
 }
+
+/* Light Mode Overrides */
+body.light-mode {
+  --bg: var(--bg-light);
+  --tx: var(--tx-light);
+  --mu: var(--mu-light);
+  --bd: var(--bd-light);
+  --s0: var(--s0-light);
+  --card-bg: var(--card-bg-light);
+}
+body.light-mode .mesh { opacity: 0.15; }
+body.light-mode .grid-bg { opacity: 0.5; }
+body.light-mode .sl { opacity: 0.2; }
+body.light-mode .co { border-color: rgba(0,0,0,.15) !important; }
+body.light-mode .hud .hl { color: #5f6c8c; }
+body.light-mode .hud .hv { color: #1e2332; }
+body.light-mode .wm-r { color: #8a97b0; }
 
 /* ─────────────── RESET ─────────────── */
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne',sans-serif;overflow-x:hidden}
-@media(hover:hover){body{cursor:none}}
 
 /* ─────────────── CANVAS ─────────────── */
 #cvs{position:fixed;inset:0;z-index:0;pointer-events:none}
@@ -58,15 +83,51 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
   background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,.045) 3px,rgba(0,0,0,.045) 4px);
 }
 
-/* ─────────────── CURSOR (desktop) ─────────────── */
-#cur,#dot{position:fixed;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);opacity:0;transition:opacity .4s}
-#cur{
-  width:34px;height:34px;border:1px solid rgba(0,212,255,.7);
-  border-radius:50%;
-  transition:opacity .4s,width .18s var(--ease),height .18s var(--ease),border-color .18s;
+/* ─────────────── CONTROL BAR (Theme/Lang) ─────────────── */
+.control-bar {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  gap: 10px;
+  background: var(--card-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--bd);
+  border-radius: 60px;
+  padding: 6px 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.2);
 }
-#dot{width:4px;height:4px;background:var(--c);border-radius:50%}
-#cur.big{width:60px;height:60px;border-color:rgba(255,31,75,.65)}
+.ctrl-btn {
+  background: transparent;
+  border: none;
+  color: var(--tx);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  border-radius: 40px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ctrl-btn i { font-style: normal; font-size: 1.1em; }
+.ctrl-btn:hover {
+  background: var(--s0);
+  border-color: var(--bd);
+  color: var(--c);
+}
+.ctrl-btn.active {
+  background: var(--c);
+  color: #000;
+  border-color: var(--c);
+}
 
 /* ─────────────── CORNERS ─────────────── */
 .co{position:fixed;width:30px;height:30px;z-index:5;animation:coIn 1s ease both}
@@ -111,19 +172,26 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
 .title{
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(3.4rem,13vw,9.5rem);
-  line-height:.88;letter-spacing:4px;text-align:center;color:#fff;
+  line-height:.88;letter-spacing:4px;text-align:center;color:var(--tx);
   animation:fadeD .75s .07s ease both;
   user-select:none;
 }
 .tc{color:var(--c)}.tr{color:var(--r)}
-.title:hover{animation:glitch .55s steps(1) 3}
-@keyframes glitch{
-  0%  {text-shadow:3px 0 var(--r),-3px 0 var(--c)}
-  20% {clip-path:inset(12% 0 58% 0);text-shadow:-3px 0 var(--r),3px 0 var(--c)}
-  40% {clip-path:none;text-shadow:3px 0 var(--c),-3px 0 var(--r)}
-  60% {clip-path:inset(58% 0 8% 0);text-shadow:none}
-  80% {clip-path:none;text-shadow:-2px 0 var(--c),2px 0 var(--r)}
-  100%{text-shadow:none;clip-path:none}
+
+/* PERIODIC GLITCH — runs every 2 seconds automatically (no mouse) */
+.title {
+  animation: fadeD .75s .07s ease both, glitchPeriodic 4s ease-in-out infinite;
+}
+@keyframes glitchPeriodic {
+  0%, 45%, 55%, 100% { text-shadow: none; clip-path: none; }
+  50% {
+    text-shadow: 3px 0 var(--r), -3px 0 var(--c);
+    clip-path: inset(12% 0 58% 0);
+  }
+  52% {
+    text-shadow: -3px 0 var(--r), 3px 0 var(--c);
+    clip-path: inset(58% 0 8% 0);
+  }
 }
 
 /* ─────────────── SUBTITLE ─────────────── */
@@ -154,17 +222,15 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
 /* ─── CARD ─── */
 .card{
   position:relative;overflow:hidden;
-  background:var(--s0);
+  background:var(--card-bg);
   border:1px solid var(--bd);
   border-radius:clamp(14px,3vw,24px);
   padding:clamp(22px,4.5vw,40px) clamp(8px,2vw,18px) clamp(16px,3.5vw,30px);
   text-align:center;
   backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
   will-change:transform;
-  transform-style:preserve-3d;
   transition:border-color .35s,box-shadow .35s;
-  /* Subtle floating animation per card */
-  animation:fadeU .75s ease both, cardFloat ease-in-out infinite;
+  animation:fadeU .75s ease both, cardFloat 6s 0s ease-in-out infinite;
 }
 .card:nth-child(1){animation:fadeU .75s .28s ease both,cardFloat 6s 0s ease-in-out infinite}
 .card:nth-child(2){animation:fadeU .75s .33s ease both,cardFloat 6s .5s ease-in-out infinite}
@@ -176,30 +242,23 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
   50%{box-shadow:0 16px 40px rgba(0,0,0,.5)}
 }
 
-/* Glass inner glow */
 .card::before{
   content:'';position:absolute;inset:0;border-radius:inherit;
   background:linear-gradient(135deg,rgba(0,212,255,.1) 0%,transparent 45%,rgba(255,31,75,.07) 100%);
   opacity:0;transition:opacity .4s ease;pointer-events:none;
 }
-/* Top shimmer line */
 .card::after{
   content:'';position:absolute;top:0;left:-100%;right:0;width:100%;height:1.5px;
   background:linear-gradient(90deg,transparent,var(--c),transparent);
   animation:shimmerLine 3.5s ease-in-out infinite;
 }
-.card:nth-child(2)::after{animation-delay:.8s}
-.card:nth-child(3)::after{animation-delay:1.6s}
-.card:nth-child(4)::after{animation-delay:2.4s}
-@keyframes shimmerLine{0%,100%{left:-100%}50%{left:100%}}
-
 .card:hover::before{opacity:1}
 .card:hover{
   border-color:rgba(0,212,255,.32);
   box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 50px rgba(0,212,255,.07),inset 0 1px 0 rgba(0,212,255,.15);
 }
-.card-sec:hover{border-color:rgba(255,31,75,.32);box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 50px rgba(255,31,75,.07),inset 0 1px 0 rgba(255,31,75,.12)}
 .card-sec{border-color:rgba(255,31,75,.1)}
+.card-sec:hover{border-color:rgba(255,31,75,.32);box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 50px rgba(255,31,75,.07),inset 0 1px 0 rgba(255,31,75,.12)}
 
 .card-idx{
   position:absolute;top:10px;right:13px;
@@ -207,7 +266,6 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
   font-size:.42rem;color:var(--mu);letter-spacing:2px;
 }
 
-/* ─── NUMBER FLIP ─── */
 .num-wrap{
   overflow:hidden;position:relative;
   height:clamp(3.8rem,9.5vw,6.4rem);
@@ -218,7 +276,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
   display:block;
   font-family:'Bebas Neue',sans-serif;
   font-size:clamp(3rem,8vw,5.8rem);
-  color:#fff;line-height:1;letter-spacing:2px;
+  color:var(--tx);line-height:1;letter-spacing:2px;
   transform-origin:50% 50%;
   will-change:transform,opacity;
   transition:color .25s ease;
@@ -234,7 +292,6 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
   50%{opacity:.55;text-shadow:0 0 30px rgba(255,31,75,.5)}
 }
 
-/* Flip animations */
 .flip-out{animation:flipOut .17s ease forwards !important}
 .flip-in {animation:flipIn  .22s var(--spring) both !important}
 @keyframes flipOut{
@@ -333,7 +390,7 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
 }
 .q-text{
   font-size:clamp(.76rem,1.9vw,.88rem);font-weight:300;line-height:1.8;
-  color:#636888;font-style:italic;
+  color:var(--mu);font-style:italic;
   transition:opacity .5s ease,transform .5s var(--ease);
   margin-bottom:10px;
 }
@@ -358,19 +415,13 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
   .stats{grid-template-columns:repeat(2,1fr)}
   .hud{display:none}
   .co{display:none}
-  html,body{cursor:auto}
-  #cur,#dot{display:none}
+  .control-bar { top: 12px; right: 12px; }
 }
 @media(max-width:500px){
   .wrap{padding:56px 12px 70px;gap:18px}
   .badge{font-size:.48rem;letter-spacing:2px;padding:5px 14px}
 }
-@media(min-width:769px) and (max-width:1024px){
-  .cd{grid-template-columns:repeat(4,1fr)}
-  .stats{grid-template-columns:repeat(4,1fr)}
-}
 
-/* ─────────────── REDUCED MOTION ─────────────── */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{
     animation-duration:.01ms !important;
@@ -387,33 +438,38 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
 <div class="grid-bg"></div>
 <div class="sl"></div>
 
-<!-- Cursor -->
-<div id="cur"></div>
-<div id="dot"></div>
-
 <!-- Corners -->
 <div class="co co-tl"></div>
 <div class="co co-tr"></div>
 <div class="co co-bl"></div>
 <div class="co co-br"></div>
 
-<div class="hud hud-tr">
-  <div class="hl">Local Time</div>
-  <div class="hv c" id="hud-time">--:--</div>
-  <div class="hud-sep"></div>
-  <div class="hl">Today's Date</div>
-  <div class="hv" id="hud-date">-- --- ----</div>
+<!-- Control Bar for Theme & Language -->
+<div class="control-bar">
+  <button class="ctrl-btn" id="themeToggle" title="Toggle Dark/Light Mode">
+    <i>🌙</i> <span data-i18n="theme">DARK</span>
+  </button>
+  <button class="ctrl-btn" id="langToggle" title="Switch Language">
+    <i>🌐</i> <span data-i18n="lang">বাংলা</span>
+  </button>
 </div>
 
+<div class="hud hud-tr">
+  <div class="hl" data-i18n="localTime">Local Time</div>
+  <div class="hv c" id="hud-time">--:--</div>
+  <div class="hud-sep"></div>
+  <div class="hl" data-i18n="todayDate">Today's Date</div>
+  <div class="hv" id="hud-date">-- --- ----</div>
+</div>
 
 <!-- ════ MAIN ════ -->
 <div class="wrap">
 
-  <div class="badge"><div class="bd"></div>HSC 2026 Coming -- Study Now</div>
+  <div class="badge"><div class="bd"></div><span data-i18n="badge">HSC 2026 Coming — Study Now</span></div>
 
-  <h1 class="title">MISSION<br><span class="tc">HSC</span> <span class="tr">26</span></h1>
+  <h1 class="title"><span data-i18n="mission">MISSION</span><br><span class="tc">HSC</span> <span class="tr">26</span></h1>
 
-  <p class="sub">COMING ON → <span>2 JULY 2026 — 10:00 AM</span></p>
+  <p class="sub"><span data-i18n="comingOn">COMING ON →</span> <span id="targetDateDisplay">2 JULY 2026 — 10:00 AM</span></p>
 
   <div class="divider"></div>
 
@@ -422,32 +478,42 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
     <div class="card">
       <span class="card-idx">01</span>
       <div class="num-wrap"><span class="card-num" id="days">0</span></div>
-      <div class="card-lbl">Days</div>
+      <div class="card-lbl" data-i18n="days">Days</div>
     </div>
     <div class="card">
       <span class="card-idx">02</span>
       <div class="num-wrap"><span class="card-num" id="hours">00</span></div>
-      <div class="card-lbl">Hours</div>
+      <div class="card-lbl" data-i18n="hours">Hours</div>
     </div>
     <div class="card">
       <span class="card-idx">03</span>
       <div class="num-wrap"><span class="card-num" id="minutes">00</span></div>
-      <div class="card-lbl">Minutes</div>
+      <div class="card-lbl" data-i18n="minutes">Minutes</div>
     </div>
     <div class="card card-sec">
       <span class="card-idx">04</span>
       <div class="num-wrap"><span class="card-num" id="seconds">00</span></div>
-      <div class="card-lbl">Seconds</div>
+      <div class="card-lbl" data-i18n="seconds">Seconds</div>
     </div>
   </div>
 
+  <!-- PROGRESS BAR -->
+  <div class="prog">
+    <div class="prog-head">
+      <span class="prog-lbl" data-i18n="progress">OVERALL PROGRESS</span>
+      <span class="prog-pct" id="bar-pct">0.00%</span>
+    </div>
+    <div class="prog-track">
+      <div class="prog-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+  </div>
 
   <!-- STATS -->
   <div class="stats">
-    <div class="stat"><span class="stat-v" id="st-h">—</span><span class="stat-l">Hours Left</span></div>
-    <div class="stat"><span class="stat-v" id="st-m">—</span><span class="stat-l">Minutes Left</span></div>
-    <div class="stat"><span class="stat-v" id="st-w">—</span><span class="stat-l">Weeks Left</span></div>
-    <div class="stat"><span class="stat-v" id="st-s">—</span><span class="stat-l">Seconds Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-h">—</span><span class="stat-l" data-i18n="hoursLeft">Hours Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-m">—</span><span class="stat-l" data-i18n="minutesLeft">Minutes Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-w">—</span><span class="stat-l" data-i18n="weeksLeft">Weeks Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-s">—</span><span class="stat-l" data-i18n="secondsLeft">Seconds Left</span></div>
   </div>
 
   <!-- QUOTE -->
@@ -458,7 +524,6 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
       <p class="q-auth" id="qa"></p>
     </div>
   </div>
-
 </div>
 
 <div class="wm">
@@ -467,271 +532,327 @@ html,body{min-height:100%;background:var(--bg);color:var(--tx);font-family:'Syne
 </div>
 
 <script>
-/* ═══════════════════════════════
-   1. ADAPTIVE PARTICLE CANVAS
-═══════════════════════════════ */
-const cvs = document.getElementById('cvs');
-const ctx  = cvs.getContext('2d');
-let W, H, pts = [];
-
-const prefersReduced = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-const isTouchDevice  = () => window.matchMedia('(hover:none)').matches;
-const getN = () => {
-  const w = window.innerWidth;
-  if (w < 480) return 20;
-  if (w < 768) return 32;
-  if (w < 1280) return 50;
-  return 70;
-};
-const LINK = 115;
-let mx = -999, my = -999;
-
-function resize() {
-  W = cvs.width  = window.innerWidth;
-  H = cvs.height = window.innerHeight;
-  const n = getN();
-  if (pts.length !== n) pts = Array.from({length: n}, () => new Dot());
-}
-window.addEventListener('resize', resize);
-
-class Dot {
-  constructor() { this.reset(); }
-  reset() {
-    this.x  = Math.random() * (W || window.innerWidth);
-    this.y  = Math.random() * (H || window.innerHeight);
-    this.vx = (Math.random() - .5) * .28;
-    this.vy = (Math.random() - .5) * .28;
-    this.r  = Math.random() * 1.4 + .4;
-  }
-  step() {
-    if (!isTouchDevice()) {
-      const dx = this.x - mx, dy = this.y - my;
-      const d  = Math.hypot(dx, dy);
-      if (d < 110 && d > 0) { this.vx += dx/d*.5; this.vy += dy/d*.5; }
+  (function(){
+    "use strict";
+    
+    /* ═══════════════════════════════
+       1. ADAPTIVE PARTICLE CANVAS (NO MOUSE INTERACTION)
+    ═══════════════════════════════ */
+    const cvs = document.getElementById('cvs');
+    const ctx  = cvs.getContext('2d');
+    let W, H, pts = [];
+    
+    const prefersReduced = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+    const isTouchDevice  = () => window.matchMedia('(hover:none)').matches;
+    const getN = () => {
+      const w = window.innerWidth;
+      if (w < 480) return 20;
+      if (w < 768) return 32;
+      if (w < 1280) return 50;
+      return 70;
+    };
+    const LINK = 115;
+    
+    function resize() {
+      W = cvs.width  = window.innerWidth;
+      H = cvs.height = window.innerHeight;
+      const n = getN();
+      if (pts.length !== n) pts = Array.from({length: n}, () => new Dot());
     }
-    this.vx *= .985; this.vy *= .985;
-    this.x  += this.vx; this.y += this.vy;
-    if (this.x < 0) this.x = W; if (this.x > W) this.x = 0;
-    if (this.y < 0) this.y = H; if (this.y > H) this.y = 0;
-  }
-  draw() {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0,212,255,.65)';
-    ctx.fill();
-  }
-}
-
-resize();
-
-if (!prefersReduced) {
-  // FPS cap: 60 desktop, 30 mobile
-  const targetFPS = isTouchDevice() ? 30 : 60;
-  let last = 0;
-  const interval = 1000 / targetFPS;
-
-  (function loop(ts) {
-    requestAnimationFrame(loop);
-    if (ts - last < interval) return;
-    last = ts;
-    ctx.clearRect(0, 0, W, H);
-    const n = pts.length;
-    for (let i = 0; i < n; i++) {
-      for (let j = i + 1; j < n; j++) {
-        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-        const d  = Math.hypot(dx, dy);
-        if (d < LINK) {
-          const a = (1 - d / LINK) * .28;
-          ctx.beginPath();
-          ctx.moveTo(pts[i].x, pts[i].y);
-          ctx.lineTo(pts[j].x, pts[j].y);
-          ctx.strokeStyle = `rgba(0,212,255,${a})`;
-          ctx.lineWidth   = .55;
-          ctx.stroke();
-        }
+    window.addEventListener('resize', resize);
+    
+    class Dot {
+      constructor() { this.reset(); }
+      reset() {
+        this.x  = Math.random() * (W || window.innerWidth);
+        this.y  = Math.random() * (H || window.innerHeight);
+        this.vx = (Math.random() - .5) * .28;
+        this.vy = (Math.random() - .5) * .28;
+        this.r  = Math.random() * 1.4 + .4;
       }
-      pts[i].step();
-      pts[i].draw();
+      step() {
+        // No mouse repulsion
+        this.vx *= .99; this.vy *= .99;
+        this.x  += this.vx; this.y += this.vy;
+        if (this.x < 0) this.x = W; if (this.x > W) this.x = 0;
+        if (this.y < 0) this.y = H; if (this.y > H) this.y = 0;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(0,212,255,.65)';
+        ctx.fill();
+      }
     }
-  })(0);
-}
-
-/* ═══════════════════════════════
-   2. CUSTOM CURSOR (desktop)
-═══════════════════════════════ */
-const curEl = document.getElementById('cur');
-const dotEl = document.getElementById('dot');
-let cx = 0, cy = 0, tx = 0, ty = 0, shown = false;
-
-if (window.matchMedia('(hover:hover)').matches) {
-  document.addEventListener('mousemove', e => {
-    tx = e.clientX; ty = e.clientY;
-    mx = e.clientX; my = e.clientY;
-    if (!shown) { curEl.style.opacity = '1'; dotEl.style.opacity = '1'; shown = true; }
-    dotEl.style.left = tx + 'px'; dotEl.style.top = ty + 'px';
-  });
-
-  (function curLoop() {
-    cx += (tx - cx) * .11;
-    cy += (ty - cy) * .11;
-    curEl.style.left = cx + 'px'; curEl.style.top = cy + 'px';
-    requestAnimationFrame(curLoop);
+    
+    resize();
+    
+    if (!prefersReduced) {
+      const targetFPS = isTouchDevice() ? 30 : 60;
+      let last = 0;
+      const interval = 1000 / targetFPS;
+      
+      (function loop(ts) {
+        requestAnimationFrame(loop);
+        if (ts - last < interval) return;
+        last = ts;
+        ctx.clearRect(0, 0, W, H);
+        const n = pts.length;
+        for (let i = 0; i < n; i++) {
+          for (let j = i + 1; j < n; j++) {
+            const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
+            const d  = Math.hypot(dx, dy);
+            if (d < LINK) {
+              const a = (1 - d / LINK) * .28;
+              ctx.beginPath();
+              ctx.moveTo(pts[i].x, pts[i].y);
+              ctx.lineTo(pts[j].x, pts[j].y);
+              ctx.strokeStyle = `rgba(0,212,255,${a})`;
+              ctx.lineWidth   = .55;
+              ctx.stroke();
+            }
+          }
+          pts[i].step();
+          pts[i].draw();
+        }
+      })(0);
+    }
+    
+    /* ═══════════════════════════════
+       2. FLIP NUMBER ANIMATION (respects reduced motion)
+    ═══════════════════════════════ */
+    const busy = new WeakSet();
+    const motionSafe = !prefersReduced;
+    
+    function flipNum(el, newVal) {
+      if (el.textContent === newVal) return;
+      if (!motionSafe || busy.has(el)) { 
+        el.textContent = newVal; 
+        return; 
+      }
+      busy.add(el);
+      el.classList.add('flip-out');
+      setTimeout(() => {
+        el.textContent = newVal;
+        el.classList.remove('flip-out');
+        el.classList.add('flip-in');
+        setTimeout(() => { el.classList.remove('flip-in'); busy.delete(el); }, 240);
+      }, 170);
+    }
+    
+    /* ═══════════════════════════════
+       3. COUNTDOWN ENGINE
+    ═══════════════════════════════ */
+    const TARGET = new Date('July 2, 2026 10:00:00').getTime();
+    const START  = new Date('April 18, 2026 00:00:00').getTime();
+    let prev     = { d: null, h: null, m: null };
+    
+    function pad(n, l = 2) { return String(Math.floor(n)).padStart(l, '0'); }
+    
+    const elDays = document.getElementById('days');
+    const elHrs  = document.getElementById('hours');
+    const elMin  = document.getElementById('minutes');
+    const elSec  = document.getElementById('seconds');
+    const elFill = document.getElementById('prog-fill');
+    const elPct  = document.getElementById('bar-pct');
+    const elH    = document.getElementById('st-h');
+    const elM    = document.getElementById('st-m');
+    const elW    = document.getElementById('st-w');
+    const elS    = document.getElementById('st-s');
+    
+    function tick() {
+      const now  = Date.now();
+      const dist = TARGET - now;
+      const total= TARGET - START;
+      
+      if (dist <= 0) {
+        document.querySelector('.wrap').innerHTML = `
+          <div style="text-align:center">
+            <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,14vw,9rem);color:#00d4ff;letter-spacing:8px;line-height:.9;animation:fadeD .8s ease both">${i18nText('missionAccomplished')}</h1>
+            <p style="font-family:'JetBrains Mono',monospace;color:#7b5ea7;letter-spacing:5px;font-size:.8rem;margin-top:22px;animation:fadeD .8s .3s ease both">${i18nText('examDay')}</p>
+          </div>`;
+        return;
+      }
+      
+      const d  = Math.floor(dist / 86400000);
+      const h  = Math.floor((dist % 86400000) / 3600000);
+      const m  = Math.floor((dist % 3600000)  / 60000);
+      const s  = Math.floor((dist % 60000)    / 1000);
+      
+      const dS = String(d);
+      const hS = pad(h);
+      const mS = pad(m);
+      const sS = pad(s);
+      
+      if (dS !== prev.d) { flipNum(elDays, dS); prev.d = dS; }
+      if (hS !== prev.h) { flipNum(elHrs,  hS); prev.h = hS; }
+      if (mS !== prev.m) { flipNum(elMin,  mS); prev.m = mS; }
+      elSec.textContent = sS;
+      
+      const pct = Math.min(((total - dist) / total) * 100, 100);
+      elFill.style.width = pct + '%';
+      elPct.textContent  = pct.toFixed(4) + '%';
+      
+      elH.textContent = Math.floor(dist / 3600000).toLocaleString();
+      elM.textContent = Math.floor(dist / 60000).toLocaleString();
+      elW.textContent = Math.floor(d / 7);
+      elS.textContent = Math.floor(dist / 1000).toLocaleString();
+      
+      const now2 = new Date();
+      document.getElementById('hud-time').textContent =
+        now2.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
+      document.getElementById('hud-date').textContent =
+        now2.toLocaleDateString('en-GB',  { day:'2-digit', month:'short', year:'numeric' }).toUpperCase();
+    }
+    
+    setInterval(tick, 1000);
+    tick();
+    
+    /* ═══════════════════════════════
+       4. QUOTE ROTATION (English only, but author may be localized)
+    ═══════════════════════════════ */
+    const QS = [
+      { t: "Success is the sum of small efforts, repeated day in and day out.",          a: "Robert Collier"    },
+      { t: "The secret of getting ahead is getting started — start right now.",          a: "Mark Twain"        },
+      { t: "Don't watch the clock. Do what it does — keep going.",                       a: "Sam Levenson"      },
+      { t: "Your future is created by what you do today, not tomorrow.",                 a: "Robert Kiyosaki"   },
+      { t: "Believe you can and you're halfway there. Discipline closes the gap.",       a: "Theodore Roosevelt"},
+      { t: "Push yourself, because no one else is going to do it for you.",              a: "Unknown"           },
+      { t: "Great things never came from comfort zones. Embrace the grind.",             a: "Unknown"           },
+      { t: "Every hour of study today is an investment paying dividends on exam day.",   a: "Unknown"           },
+      { t: "It always seems impossible until it is done.",                               a: "Nelson Mandela"    },
+      { t: "The harder you work for something, the greater you feel when you achieve it.", a: "Unknown"         },
+      { t: "Discipline is choosing between what you want now and what you want most.",   a: "Abraham Lincoln"   },
+      { t: "A year from now you will wish you had started today.",                       a: "Karen Lamb"        },
+    ];
+    
+    let qi = 0;
+    const qtEl = document.getElementById('qt');
+    const qaEl = document.getElementById('qa');
+    
+    function nextQ() {
+      const q = QS[qi % QS.length];
+      qtEl.style.opacity   = '0';
+      qtEl.style.transform = 'translateY(10px)';
+      setTimeout(() => {
+        qtEl.textContent    = '\u201C' + q.t + '\u201D';
+        qaEl.textContent    = '\u2014 ' + q.a;
+        qtEl.style.opacity  = '1';
+        qtEl.style.transform= 'translateY(0)';
+      }, 500);
+      qi++;
+    }
+    
+    nextQ();
+    setInterval(nextQ, 9500);
+    
+    /* ═══════════════════════════════
+       5. INTERNATIONALIZATION (English / Bangla)
+    ═══════════════════════════════ */
+    const i18n = {
+      en: {
+        theme: 'DARK',
+        lang: 'বাংলা',
+        localTime: 'Local Time',
+        todayDate: 'Today\'s Date',
+        badge: 'HSC 2026 Coming — Study Now',
+        mission: 'MISSION',
+        comingOn: 'COMING ON →',
+        days: 'Days',
+        hours: 'Hours',
+        minutes: 'Minutes',
+        seconds: 'Seconds',
+        progress: 'OVERALL PROGRESS',
+        hoursLeft: 'Hours Left',
+        minutesLeft: 'Minutes Left',
+        weeksLeft: 'Weeks Left',
+        secondsLeft: 'Seconds Left',
+        missionAccomplished: 'MISSION<br>ACCOMPLISHED',
+        examDay: 'HSC 2026 — EXAM DAY HAS ARRIVED',
+        targetDate: '2 JULY 2026 — 10:00 AM'
+      },
+      bn: {
+        theme: 'DARK',
+        lang: 'English',
+        localTime: 'স্থানীয় সময়',
+        todayDate: 'আজকের তারিখ',
+        badge: 'এইচএসসি ২০২৬ আসছে — এখনই পড়ুন',
+        mission: 'মিশন',
+        comingOn: 'শুরু হচ্ছে →',
+        days: 'দিন',
+        hours: 'ঘন্টা',
+        minutes: 'মিনিট',
+        seconds: 'সেকেন্ড',
+        progress: 'সার্বিক অগ্রগতি',
+        hoursLeft: 'বাকি ঘন্টা',
+        minutesLeft: 'বাকি মিনিট',
+        weeksLeft: 'বাকি সপ্তাহ',
+        secondsLeft: 'বাকি সেকেন্ড',
+        missionAccomplished: 'মিশন<br>সফল',
+        examDay: 'এইচএসসি ২০২৬ — পরীক্ষার দিন এসে গেছে',
+        targetDate: '২ জুলাই ২০২৬ — সকাল ১০:০০'
+      }
+    };
+    
+    let currentLang = 'en';
+    
+    function i18nText(key) {
+      return i18n[currentLang][key] || key;
+    }
+    
+    function updateUIText() {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (key) el.textContent = i18nText(key);
+      });
+      // Update target date display
+      document.getElementById('targetDateDisplay').textContent = i18nText('targetDate');
+      // Update toggle button text
+      document.querySelector('#langToggle span').textContent = i18nText('lang');
+      document.querySelector('#themeToggle span').textContent = i18nText('theme');
+      // Update badge
+      document.querySelector('.badge span').textContent = i18nText('badge');
+    }
+    
+    // Language Toggle
+    const langToggle = document.getElementById('langToggle');
+    langToggle.addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'bn' : 'en';
+      document.documentElement.lang = currentLang;
+      updateUIText();
+    });
+    
+    /* ═══════════════════════════════
+       6. DARK / LIGHT MODE TOGGLE
+    ═══════════════════════════════ */
+    const themeToggle = document.getElementById('themeToggle');
+    const body = document.body;
+    const themeIcon = themeToggle.querySelector('i');
+    
+    function setTheme(isLight) {
+      if (isLight) {
+        body.classList.add('light-mode');
+        themeIcon.textContent = '☀️';
+        themeToggle.querySelector('span').textContent = 'LIGHT';
+      } else {
+        body.classList.remove('light-mode');
+        themeIcon.textContent = '🌙';
+        themeToggle.querySelector('span').textContent = 'DARK';
+      }
+    }
+    
+    themeToggle.addEventListener('click', () => {
+      const isLight = body.classList.toggle('light-mode');
+      setTheme(isLight);
+    });
+    
+    // Initialize theme (default dark)
+    setTheme(false);
+    
+    // Initial UI text
+    updateUIText();
+    
   })();
-
-  document.querySelectorAll('.card,.stat,.quote,.badge,.prog').forEach(el => {
-    el.addEventListener('mouseenter', () => curEl.classList.add('big'));
-    el.addEventListener('mouseleave', () => curEl.classList.remove('big'));
-  });
-}
-
-/* ═══════════════════════════════
-   3. 3D CARD TILT (desktop only)
-═══════════════════════════════ */
-if (!isTouchDevice() && window.innerWidth > 768 && !prefersReduced) {
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('mousemove', e => {
-      const r  = card.getBoundingClientRect();
-      const x  = e.clientX - r.left  - r.width  / 2;
-      const y  = e.clientY - r.top   - r.height / 2;
-      const rX = -(y / r.height) * 17;
-      const rY =  (x / r.width)  * 17;
-      card.style.transition = 'transform .04s,border-color .35s,box-shadow .35s';
-      card.style.transform  = `perspective(700px) rotateX(${rX}deg) rotateY(${rY}deg) translateY(-8px) scale(1.025)`;
-    });
-    card.addEventListener('mouseleave', () => {
-      card.style.transition = 'transform .65s cubic-bezier(.23,1,.32,1),border-color .35s,box-shadow .35s';
-      card.style.transform  = '';
-    });
-  });
-}
-
-/* ═══════════════════════════════
-   4. FLIP NUMBER ANIMATION
-═══════════════════════════════ */
-const busy = new WeakSet();
-
-function flipNum(el, newVal) {
-  if (el.textContent === newVal) return;
-  if (busy.has(el)) { el.textContent = newVal; return; }
-  busy.add(el);
-  el.classList.add('flip-out');
-  setTimeout(() => {
-    el.textContent = newVal;
-    el.classList.remove('flip-out');
-    el.classList.add('flip-in');
-    setTimeout(() => { el.classList.remove('flip-in'); busy.delete(el); }, 240);
-  }, 170);
-}
-
-/* ═══════════════════════════════
-   5. COUNTDOWN ENGINE
-═══════════════════════════════ */
-const TARGET = new Date('July 2, 2026 10:00:00').getTime();
-const START  = new Date('April 18, 2026 00:00:00').getTime();
-let prev     = { d: null, h: null, m: null };
-
-function pad(n, l = 2) { return String(Math.floor(n)).padStart(l, '0'); }
-
-const elDays = document.getElementById('days');
-const elHrs  = document.getElementById('hours');
-const elMin  = document.getElementById('minutes');
-const elSec  = document.getElementById('seconds');
-const elFill = document.getElementById('prog-fill');
-const elPct  = document.getElementById('bar-pct');
-const elH    = document.getElementById('st-h');
-const elM    = document.getElementById('st-m');
-const elW    = document.getElementById('st-w');
-const elS    = document.getElementById('st-s');
-
-function tick() {
-  const now  = Date.now();
-  const dist = TARGET - now;
-  const total= TARGET - START;
-
-  if (dist <= 0) {
-    document.querySelector('.wrap').innerHTML =
-      `<div style="text-align:center">
-        <h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,14vw,9rem);color:#00d4ff;letter-spacing:8px;line-height:.9;animation:fadeD .8s ease both">MISSION<br>ACCOMPLISHED</h1>
-        <p style="font-family:'JetBrains Mono',monospace;color:#7b5ea7;letter-spacing:5px;font-size:.8rem;margin-top:22px;animation:fadeD .8s .3s ease both">HSC 2026 — EXAM DAY HAS ARRIVED</p>
-      </div>`;
-    return;
-  }
-
-  const d  = Math.floor(dist / 86400000);
-  const h  = Math.floor((dist % 86400000) / 3600000);
-  const m  = Math.floor((dist % 3600000)  / 60000);
-  const s  = Math.floor((dist % 60000)    / 1000);
-
-  /* ← Days: NO leading zero */
-  const dS = String(d);
-  const hS = pad(h);
-  const mS = pad(m);
-  const sS = pad(s);
-
-  if (dS !== prev.d) { flipNum(elDays, dS); prev.d = dS; }
-  if (hS !== prev.h) { flipNum(elHrs,  hS); prev.h = hS; }
-  if (mS !== prev.m) { flipNum(elMin,  mS); prev.m = mS; }
-  elSec.textContent = sS;
-
-  /* Progress */
-  const pct = Math.min(((total - dist) / total) * 100, 100);
-  elFill.style.width = pct + '%';
-  elPct.textContent  = pct.toFixed(4) + '%';
-
-  /* Stats */
-  elH.textContent = Math.floor(dist / 3600000).toLocaleString();
-  elM.textContent = Math.floor(dist / 60000).toLocaleString();
-  elW.textContent = Math.floor(d / 7);
-  elS.textContent = Math.floor(dist / 1000).toLocaleString();
-
-  /* HUD clock */
-  const now2 = new Date();
-  document.getElementById('hud-time').textContent =
-    now2.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-  document.getElementById('hud-date').textContent =
-    now2.toLocaleDateString('en-GB',  { day:'2-digit', month:'short', year:'numeric' }).toUpperCase();
-}
-
-setInterval(tick, 1000);
-tick();
-
-/* ═══════════════════════════════
-   6. QUOTE ROTATION
-═══════════════════════════════ */
-const QS = [
-  { t: "Success is the sum of small efforts, repeated day in and day out.",          a: "Robert Collier"    },
-  { t: "The secret of getting ahead is getting started — start right now.",          a: "Mark Twain"        },
-  { t: "Don't watch the clock. Do what it does — keep going.",                       a: "Sam Levenson"      },
-  { t: "Your future is created by what you do today, not tomorrow.",                 a: "Robert Kiyosaki"   },
-  { t: "Believe you can and you're halfway there. Discipline closes the gap.",       a: "Theodore Roosevelt"},
-  { t: "Push yourself, because no one else is going to do it for you.",              a: "Unknown"           },
-  { t: "Great things never came from comfort zones. Embrace the grind.",             a: "Unknown"           },
-  { t: "Every hour of study today is an investment paying dividends on exam day.",   a: "Unknown"           },
-  { t: "It always seems impossible until it is done.",                               a: "Nelson Mandela"    },
-  { t: "The harder you work for something, the greater you feel when you achieve it.", a: "Unknown"         },
-  { t: "Discipline is choosing between what you want now and what you want most.",   a: "Abraham Lincoln"   },
-  { t: "A year from now you will wish you had started today.",                       a: "Karen Lamb"        },
-];
-
-let qi = 0;
-const qtEl = document.getElementById('qt');
-const qaEl = document.getElementById('qa');
-
-function nextQ() {
-  const q = QS[qi % QS.length];
-  qtEl.style.opacity   = '0';
-  qtEl.style.transform = 'translateY(10px)';
-  setTimeout(() => {
-    qtEl.textContent    = '\u201C' + q.t + '\u201D';
-    qaEl.textContent    = '\u2014 ' + q.a;
-    qtEl.style.opacity  = '1';
-    qtEl.style.transform= 'translateY(0)';
-  }, 500);
-  qi++;
-}
-
-nextQ();
-setInterval(nextQ, 9500);
 </script>
 </body>
 </html>
