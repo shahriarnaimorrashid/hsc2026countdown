@@ -1,582 +1,663 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>MISSION HSC 26 — Shahriar Naim</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-<style>
-/* ─────────────── TOKENS ─────────────── */
-:root {
-  --c:  #0099ff;
-  --r:  #ff3366;
-  --g:  #ffaa00;
-  --p:  #8b5cf6;
-  --bg: #f8fafd;
-  --surface: rgba(255,255,255,0.7);
-  --border: rgba(0,0,0,0.06);
-  --tx: #1a1e2b;
-  --mu: #64748b;
-  --card-bg: rgba(255,255,255,0.65);
-  --shadow-sm: 0 8px 20px -6px rgba(0,0,0,0.05), 0 4px 8px -4px rgba(0,0,0,0.03);
-  --shadow-md: 0 20px 30px -12px rgba(0,0,0,0.08), 0 8px 12px -6px rgba(0,0,0,0.04);
-  --radius-card: 28px;
-  --radius-pill: 60px;
-  --ease: cubic-bezier(0.23, 1, 0.32, 1);
-  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-body.dark-mode {
-  --bg: #0b0e14;
-  --surface: rgba(20, 28, 40, 0.7);
-  --border: rgba(255,255,255,0.06);
-  --tx: #eef2fb;
-  --mu: #8f9eb5;
-  --card-bg: rgba(15, 22, 36, 0.7);
-  --shadow-sm: 0 8px 20px -6px rgba(0,0,0,0.3);
-  --shadow-md: 0 20px 30px -12px rgba(0,0,0,0.5);
-}
-
-/* ─────────────── RESET & BASE ─────────────── */
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
-html,body{
-  min-height:100%;
-  background:var(--bg);
-  color:var(--tx);
-  font-family:'Plus Jakarta Sans', sans-serif;
-  overflow-x:hidden;
-  transition: background-color 0.3s ease, color 0.2s ease;
-}
-
-/* ─────────────── RGB PARTICLE CANVAS ─────────────── */
-#cvs{
-  position:fixed;inset:0;z-index:0;pointer-events:none;
-  opacity:0.6;
-  will-change:transform;
-}
-body.dark-mode #cvs{opacity:0.8;}
-
-/* ─────────────── BACKGROUND MESH ─────────────── */
-.mesh{
-  position:fixed;inset:0;z-index:0;pointer-events:none;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(0,153,255,0.04) 0%, transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,51,102,0.04) 0%, transparent 45%),
-    radial-gradient(circle at 40% 80%, rgba(139,92,246,0.03) 0%, transparent 50%);
-  animation:meshBreathing 18s infinite alternate;
-}
-@keyframes meshBreathing{0%{opacity:0.6;transform:scale(1)}100%{opacity:1;transform:scale(1.02)}}
-
-/* ─────────────── CONTROL BAR (Top-Right) ─────────────── */
-.control-bar{
-  position:fixed;top:20px;right:20px;z-index:100;
-  display:flex;gap:5px;
-  background:var(--card-bg);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border:1px solid var(--border);
-  border-radius:var(--radius-pill);
-  padding:5px;
-  box-shadow:var(--shadow-sm);
-}
-.ctrl-btn{
-  background:transparent;border:none;
-  color:var(--tx);font-family:'Space Grotesk',monospace;
-  font-size:0.75rem;font-weight:600;letter-spacing:0.3px;
-  padding:8px 18px;border-radius:40px;
-  cursor:pointer;transition:all 0.2s var(--ease);
-  text-transform:uppercase;display:flex;align-items:center;gap:6px;
-  border:1px solid transparent;
-}
-.ctrl-btn i{font-style:normal;font-size:1.1em;}
-.ctrl-btn:hover{background:rgba(0,153,255,0.08);border-color:var(--border);color:var(--c);}
-
-/* ─────────────── HUD (Top-Left) ─────────────── */
-.hud{
-  position:fixed;z-index:10;top:24px;left:24px;
-  font-family:'Space Grotesk',monospace;
-  background:var(--card-bg);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  padding:14px 22px;border-radius:30px;
-  border:1px solid var(--border);
-  box-shadow:var(--shadow-sm);
-  display:flex;gap:24px;
-  animation:fadeSlideDown 0.6s ease both;
-}
-.hud-item{display:flex;flex-direction:column;}
-.hl{font-size:0.6rem;letter-spacing:2px;color:var(--mu);text-transform:uppercase;margin-bottom:4px;}
-.hv{font-size:0.9rem;font-weight:700;color:var(--tx);}
-.hv.c{color:var(--c);}
-.hud-sep{width:1px;background:var(--border);margin:0 6px;}
-.weather-icon{font-size:1.1rem;margin-right:4px;}
-
-/* ─────────────── WRAPPER ─────────────── */
-.wrap{
-  position:relative;z-index:1;min-height:100vh;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  padding:clamp(80px,12vh,130px) clamp(16px,5vw,40px) clamp(60px,10vh,100px);
-  gap:clamp(24px,4vw,40px);
-}
-
-/* ─────────────── BADGE ─────────────── */
-.badge{
-  display:inline-flex;align-items:center;gap:8px;
-  background:var(--card-bg);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:1px solid var(--border);
-  border-radius:100px;
-  padding:8px 24px;
-  font-family:'Space Grotesk',monospace;
-  font-size:0.7rem;font-weight:600;letter-spacing:2px;
-  color:var(--c);
-  box-shadow:var(--shadow-sm);
-  animation:fadeSlideUp 0.7s ease both;
-}
-.bd{width:8px;height:8px;border-radius:50%;background:var(--c);animation:pulseDot 2s infinite;}
-@keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
-
-/* ─────────────── TITLE ─────────────── */
-.title{
-  font-family:'Bebas Neue', sans-serif;
-  font-size:clamp(3.8rem,14vw,9.5rem);
-  line-height:0.9;letter-spacing:4px;
-  text-align:center;color:var(--tx);
-  text-transform:uppercase;
-  animation:fadeSlideUp 0.75s 0.1s ease both, autoGlitch 4s ease-in-out infinite;
-  user-select:none;
-}
-.tc{color:var(--c)}.tr{color:var(--r)}
-@keyframes autoGlitch{
-  0%,40%,60%,100%{text-shadow:none;clip-path:none;}
-  50%{
-    text-shadow:3px 0 var(--r),-3px 0 var(--c);
-    clip-path:inset(12% 0 58% 0);
-  }
-  52%{
-    text-shadow:-3px 0 var(--r),3px 0 var(--c);
-    clip-path:inset(58% 0 8% 0);
-  }
-}
-
-/* ─────────────── SUBTITLE ─────────────── */
-.sub{
-  font-family:'Space Grotesk',monospace;
-  font-size:clamp(0.7rem,1.8vw,0.9rem);
-  letter-spacing:3px;color:var(--mu);
-  font-weight:500;
-  animation:fadeSlideUp 0.75s 0.16s ease both;
-}
-.sub span{color:var(--g);font-weight:700;}
-
-.divider{
-  width:min(400px,85%);height:2px;
-  background:linear-gradient(90deg,transparent,var(--border),transparent);
-  animation:fadeSlideUp 0.75s 0.2s ease both;
-}
-
-/* ─────────────── COUNTDOWN CARDS ─────────────── */
-.cd{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:clamp(12px,2.5vw,20px);
-  width:100%;max-width:900px;
-  animation:fadeSlideUp 0.8s 0.3s ease both;
-}
-.card{
-  position:relative;overflow:hidden;
-  background:var(--card-bg);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  border:1px solid var(--border);
-  border-radius:var(--radius-card);
-  padding:clamp(24px,5vw,40px) clamp(8px,2vw,16px) clamp(18px,3.5vw,28px);
-  text-align:center;
-  box-shadow:var(--shadow-sm);
-  transition:transform 0.25s var(--ease), box-shadow 0.3s, border-color 0.2s;
-  animation:cardFloat 5s infinite ease-in-out;
-  will-change:transform;
-}
-.card:nth-child(2){animation-delay:0.2s;}
-.card:nth-child(3){animation-delay:0.4s;}
-.card:nth-child(4){animation-delay:0.6s;}
-@keyframes cardFloat{
-  0%,100%{transform:translateY(0);}
-  50%{transform:translateY(-6px);}
-}
-.card:hover{box-shadow:var(--shadow-md);border-color:rgba(0,153,255,0.2);}
-.card::before{
-  content:'';position:absolute;inset:0;border-radius:inherit;
-  background:radial-gradient(circle at 30% 20%, rgba(0,153,255,0.06), transparent 70%);
-  opacity:0;transition:opacity 0.5s;
-}
-.card:hover::before{opacity:1;}
-.card-idx{
-  position:absolute;top:14px;right:18px;
-  font-family:'Space Grotesk',monospace;
-  font-size:0.6rem;color:var(--mu);
-}
-.num-wrap{
-  overflow:hidden;position:relative;
-  height:clamp(3.8rem,9vw,6rem);
-  display:flex;align-items:center;justify-content:center;
-  perspective:600px;
-}
-.card-num{
-  display:block;
-  font-family:'Bebas Neue',sans-serif;
-  font-weight:400;
-  font-size:clamp(3.2rem,8vw,5.5rem);
-  color:var(--tx);
-  line-height:1;
-  transition:color 0.2s;
-}
-.card-sec .card-num{color:var(--r);animation:softPulse 1.8s infinite;}
-@keyframes softPulse{0%,100%{opacity:1}50%{opacity:0.6}}
-
-.flip-out{animation:flipOut 0.18s ease forwards !important}
-.flip-in{animation:flipIn 0.25s var(--spring) both !important}
-@keyframes flipOut{0%{transform:translateY(0) rotateX(0);opacity:1}100%{transform:translateY(-20px) rotateX(15deg);opacity:0}}
-@keyframes flipIn{0%{transform:translateY(20px) rotateX(-15deg);opacity:0}100%{transform:translateY(0) rotateX(0);opacity:1}}
-
-.card-lbl{
-  font-family:'Space Grotesk',monospace;
-  font-size:0.6rem;font-weight:600;letter-spacing:3px;
-  color:var(--mu);text-transform:uppercase;margin-top:10px;
-}
-
-/* ─────────────── PROGRESS ─────────────── */
-.prog{width:100%;max-width:900px;animation:fadeSlideUp 0.8s 0.4s ease both;}
-.prog-head{display:flex;justify-content:space-between;margin-bottom:12px;}
-.prog-lbl{font-family:'Space Grotesk',monospace;font-size:0.65rem;letter-spacing:3px;color:var(--mu);font-weight:600;}
-.prog-pct{font-family:'Plus Jakarta Sans',sans-serif;font-weight:700;font-size:1.2rem;color:var(--c);}
-.prog-track{height:8px;background:var(--border);border-radius:100px;overflow:hidden;}
-.prog-fill{
-  height:100%;width:0%;
-  background:linear-gradient(90deg,var(--c),var(--p),var(--r));
-  border-radius:100px;
-  transition:width 1.2s var(--ease);
-  position:relative;
-}
-.prog-fill::after{
-  content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
-  width:14px;height:14px;background:white;border-radius:50%;
-  box-shadow:0 0 12px var(--c);
-}
-
-/* ─────────────── STATS ─────────────── */
-.stats{
-  display:grid;grid-template-columns:repeat(4,1fr);
-  gap:clamp(10px,2vw,16px);
-  width:100%;max-width:900px;
-  animation:fadeSlideUp 0.8s 0.5s ease both;
-}
-.stat{
-  background:var(--card-bg);
-  backdrop-filter:blur(12px);
-  -webkit-backdrop-filter:blur(12px);
-  border:1px solid var(--border);
-  border-radius:24px;
-  padding:clamp(14px,3vw,22px) 8px;
-  text-align:center;
-  box-shadow:var(--shadow-sm);
-  transition:transform 0.2s,box-shadow 0.2s;
-}
-.stat:hover{transform:translateY(-3px);box-shadow:var(--shadow-md);}
-.stat-v{
-  font-family:'Bebas Neue',sans-serif;
-  font-size:clamp(1.5rem,3.5vw,2rem);
-  color:var(--g);
-}
-.stat-l{
-  font-family:'Space Grotesk',monospace;
-  font-size:0.5rem;font-weight:600;letter-spacing:2px;
-  color:var(--mu);text-transform:uppercase;margin-top:6px;
-}
-
-/* ─────────────── QUOTE ─────────────── */
-.quote{
-  width:100%;max-width:900px;display:flex;gap:18px;
-  background:var(--card-bg);
-  backdrop-filter:blur(16px);
-  -webkit-backdrop-filter:blur(16px);
-  border:1px solid var(--border);
-  border-radius:28px;
-  padding:clamp(20px,3.5vw,30px) clamp(18px,3vw,28px);
-  box-shadow:var(--shadow-sm);
-  animation:fadeSlideUp 0.8s 0.6s ease both;
-  transition:box-shadow 0.25s;
-}
-.quote:hover{box-shadow:var(--shadow-md);}
-.q-bar{width:4px;border-radius:4px;background:linear-gradient(180deg,var(--c),var(--p),var(--r));}
-.q-text{font-size:1rem;font-weight:400;line-height:1.6;color:var(--tx);margin-bottom:8px;transition:opacity 0.4s;}
-.q-auth{font-family:'Space Grotesk',monospace;font-size:0.7rem;font-weight:600;color:var(--c);}
-
-/* ─────────────── DEVELOPER WATERMARK (Bottom-Right) ─────────────── */
-.wm{
-  position:fixed;bottom:24px;right:24px;z-index:100;
-  text-align:right;
-  font-family:'Space Grotesk',monospace;
-  background:var(--card-bg);
-  backdrop-filter:blur(20px);
-  -webkit-backdrop-filter:blur(20px);
-  padding:12px 24px;
-  border-radius:100px;
-  border:1px solid var(--border);
-  box-shadow:var(--shadow-md);
-  animation:watermarkGlow 3s ease-in-out infinite;
-}
-@keyframes watermarkGlow{
-  0%,100%{box-shadow:0 8px 25px rgba(0,153,255,0.1),0 0 0 1px rgba(0,153,255,0.1);}
-  50%{box-shadow:0 12px 35px rgba(0,153,255,0.25),0 0 0 2px rgba(0,153,255,0.2);}
-}
-.wm-r{
-  display:block;font-size:0.45rem;letter-spacing:4px;
-  color:var(--mu);margin-bottom:4px;
-}
-.wm-n{
-  display:block;
-  font-size:0.8rem;font-weight:700;letter-spacing:2px;
-  text-transform:uppercase;
-  background:linear-gradient(135deg,var(--c),var(--p),var(--r));
-  -webkit-background-clip:text;
-  background-clip:text;
-  color:transparent;
-  animation:textShimmer 3s ease-in-out infinite;
-}
-@keyframes textShimmer{
-  0%,100%{opacity:1;}
-  50%{opacity:0.8;}
-}
-
-/* ─────────────── ANIMATIONS ─────────────── */
-@keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeSlideDown{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
-
-/* ─────────────── RESPONSIVE ─────────────── */
-@media(max-width:768px){
-  .cd{grid-template-columns:repeat(2,1fr)}
-  .stats{grid-template-columns:repeat(2,1fr)}
-  .hud{display:none;}
-  .control-bar{top:12px;right:12px;}
-  .wm{bottom:16px;right:16px;padding:8px 16px;}
-}
-@media(max-width:480px){
-  .wrap{padding:70px 12px 60px;}
-  .badge{padding:6px 18px;font-size:0.6rem;}
-  .wm{padding:6px 14px;}
-  .wm-n{font-size:0.65rem;}
-}
-
-@media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation-duration:0.01ms !important;animation-iteration-count:1 !important;transition-duration:0.01ms !important;}
-}
-</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>MISSION HSC 26 — Complete Study Routine & Roadmap | Shahriar Naim</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=Tiro+Bangla:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --c: #0099ff;
+      --r: #ff3366;
+      --g: #ffaa00;
+      --p: #8b5cf6;
+      --accent-p: #4f9eff;
+      --accent-c: #f59e0b;
+      --accent-b: #34d399;
+      --accent-m: #c084fc;
+      --accent-hard: #f87171;
+      --bg: #f8fafd;
+      --surface: rgba(255, 255, 255, 0.7);
+      --border: rgba(0, 0, 0, 0.06);
+      --tx: #1a1e2b;
+      --mu: #64748b;
+      --card-bg: rgba(255, 255, 255, 0.65);
+      --shadow-sm: 0 8px 20px -6px rgba(0,0,0,0.05),0 4px 8px -4px rgba(0,0,0,0.03);
+      --shadow-md: 0 20px 30px -12px rgba(0,0,0,0.08),0 8px 12px -6px rgba(0,0,0,0.04);
+      --radius-card: 28px;
+      --radius-pill: 60px;
+      --routine-card: #ffffff;
+      --routine-border: #e2e8f0;
+      --practice: #eff6ff;
+      --practice-border: #bfdbfe;
+    }
+    body.dark-mode {
+      --bg: #0b0e14;
+      --surface: rgba(20,28,40,0.7);
+      --border: rgba(255,255,255,0.06);
+      --tx: #eef2fb;
+      --mu: #8f9eb5;
+      --card-bg: rgba(15,22,36,0.7);
+      --shadow-sm: 0 8px 20px -6px rgba(0,0,0,0.3);
+      --shadow-md: 0 20px 30px -12px rgba(0,0,0,0.5);
+      --routine-card: #1a1f2e;
+      --routine-border: #2a3040;
+      --practice: #1a2744;
+      --practice-border: #2a4080;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html{scroll-behavior:smooth}
+    body{
+      background:var(--bg);color:var(--tx);
+      font-family:'Plus Jakarta Sans',sans-serif;
+      overflow-x:hidden;
+      transition:background-color 0.3s,color 0.2s;
+    }
+    #cvs{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.7}
+    body.dark-mode #cvs{opacity:0.95}
+    .mesh{
+      position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(circle at 20% 30%,rgba(0,153,255,0.08)0%,transparent 40%),
+                 radial-gradient(circle at 80% 70%,rgba(255,51,102,0.08)0%,transparent 45%),
+                 radial-gradient(circle at 40% 80%,rgba(139,92,246,0.06)0%,transparent 50%);
+      animation:meshBreathing 18s infinite alternate;
+    }
+    body.dark-mode .mesh{
+      background:radial-gradient(circle at 20% 30%,rgba(0,153,255,0.18)0%,transparent 45%),
+                 radial-gradient(circle at 80% 70%,rgba(255,51,102,0.15)0%,transparent 50%),
+                 radial-gradient(circle at 40% 80%,rgba(139,92,246,0.12)0%,transparent 55%);
+    }
+    @keyframes meshBreathing{0%{opacity:0.5;transform:scale(1)}100%{opacity:1;transform:scale(1.03)}}
+    /* Fixed top-right control bar */
+    .control-bar{
+      position:fixed;top:20px;right:20px;z-index:100;display:flex;gap:5px;
+      background:var(--card-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      border:1px solid var(--border);border-radius:var(--radius-pill);padding:5px;box-shadow:var(--shadow-md);
+    }
+    .ctrl-btn{
+      background:transparent;border:none;color:var(--tx);font-family:'Space Grotesk',monospace;
+      font-size:0.75rem;font-weight:600;letter-spacing:0.5px;padding:8px 20px;border-radius:40px;
+      cursor:pointer;transition:all 0.25s;text-transform:uppercase;display:flex;align-items:center;gap:6px;border:1px solid transparent;
+    }
+    .ctrl-btn i{font-style:normal;font-size:1.1em}
+    .ctrl-btn:hover{background:rgba(0,153,255,0.12);border-color:rgba(0,153,255,0.3);color:var(--c);box-shadow:0 0 18px rgba(0,153,255,0.4)}
+    /* Fixed HUD */
+    .hud{
+      position:fixed;z-index:10;top:24px;left:24px;font-family:'Space Grotesk',monospace;
+      background:var(--card-bg);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+      padding:14px 24px;border-radius:30px;border:1px solid var(--border);box-shadow:var(--shadow-sm);
+      display:flex;gap:24px;animation:fadeSlideDown 0.6s ease both;
+    }
+    .hud-item{display:flex;flex-direction:column}
+    .hl{font-size:0.6rem;letter-spacing:2px;color:var(--mu);text-transform:uppercase;margin-bottom:4px}
+    .hv{font-size:0.9rem;font-weight:700;color:var(--tx)}.hv.c{color:var(--c)}
+    .hud-sep{width:1px;background:var(--border);margin:0 6px}
+    .wrap{
+      position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;
+      padding:clamp(80px,12vh,130px) clamp(16px,5vw,40px) clamp(40px,8vh,80px);gap:clamp(24px,4vw,40px);
+    }
+    .badge{
+      display:inline-flex;align-items:center;gap:8px;background:var(--card-bg);backdrop-filter:blur(20px);
+      border:1px solid var(--border);border-radius:100px;padding:8px 28px;font-family:'Space Grotesk',monospace;
+      font-size:0.7rem;font-weight:600;letter-spacing:2px;color:var(--c);box-shadow:var(--shadow-sm);
+    }
+    .bd{width:8px;height:8px;border-radius:50%;background:var(--c);animation:pulseDot 2s infinite}
+    @keyframes pulseDot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.4;transform:scale(0.8)}}
+    .title{
+      font-family:'Bebas Neue',sans-serif;font-size:clamp(3.8rem,14vw,9.5rem);line-height:0.9;
+      letter-spacing:4px;text-align:center;color:var(--tx);text-transform:uppercase;
+      animation:fadeSlideUp 0.75s 0.1s ease both,autoGlitch 4s ease-in-out infinite;user-select:none;
+    }
+    .tc{color:var(--c)}.tr{color:var(--r)}
+    @keyframes autoGlitch{0%,40%,60%,100%{text-shadow:none;clip-path:none}50%{text-shadow:3px 0 var(--r),-3px 0 var(--c);clip-path:inset(12% 0 58% 0)}52%{text-shadow:-3px 0 var(--r),3px 0 var(--c);clip-path:inset(58% 0 8% 0)}}
+    .sub{font-family:'Space Grotesk',monospace;font-size:clamp(0.7rem,1.8vw,0.9rem);letter-spacing:3px;color:var(--mu);font-weight:500}
+    .sub span{color:var(--g);font-weight:700}
+    .divider{width:min(400px,85%);height:2px;background:linear-gradient(90deg,transparent,var(--border),transparent)}
+    .cd{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(12px,2.5vw,20px);width:100%;max-width:900px}
+    .card{
+      position:relative;overflow:hidden;background:var(--card-bg);backdrop-filter:blur(24px);
+      border:1px solid var(--border);border-radius:var(--radius-card);padding:clamp(24px,5vw,40px) clamp(8px,2vw,16px) clamp(18px,3.5vw,28px);
+      text-align:center;box-shadow:var(--shadow-sm);transition:0.3s;animation:cardFloat 5s infinite ease-in-out;
+    }
+    .card:nth-child(2){animation-delay:0.2s}.card:nth-child(3){animation-delay:0.4s}.card:nth-child(4){animation-delay:0.6s}
+    @keyframes cardFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+    .card:hover{box-shadow:var(--shadow-md),0 0 18px rgba(0,153,255,0.3);border-color:rgba(0,153,255,0.3);transform:translateY(-5px)}
+    .card-idx{position:absolute;top:14px;right:18px;font-size:0.6rem;color:var(--mu);font-family:'Space Grotesk',monospace}
+    .num-wrap{overflow:hidden;position:relative;height:clamp(3.8rem,9vw,6rem);display:flex;align-items:center;justify-content:center}
+    .card-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(3.2rem,8vw,5.5rem);color:var(--tx);line-height:1}
+    .card-sec .card-num{color:var(--r);animation:softPulse 1.8s infinite}
+    @keyframes softPulse{0%,100%{opacity:1}50%{opacity:0.6}}
+    .card-lbl{font-family:'Space Grotesk',monospace;font-size:0.6rem;font-weight:600;letter-spacing:3px;color:var(--mu);text-transform:uppercase;margin-top:10px}
+    .prog{width:100%;max-width:900px}
+    .prog-head{display:flex;justify-content:space-between;margin-bottom:12px}
+    .prog-lbl{font-family:'Space Grotesk',monospace;font-size:0.65rem;letter-spacing:3px;color:var(--mu);font-weight:600}
+    .prog-pct{font-weight:700;font-size:1.2rem;color:var(--c)}
+    .prog-track{height:10px;background:var(--border);border-radius:100px;overflow:hidden}
+    .prog-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--c),var(--p),var(--r));border-radius:100px;transition:width 1.2s}
+    .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:clamp(10px,2vw,16px);width:100%;max-width:900px}
+    .stat{background:var(--card-bg);backdrop-filter:blur(16px);border:1px solid var(--border);border-radius:24px;padding:clamp(14px,3vw,22px)8px;text-align:center;box-shadow:var(--shadow-sm);transition:0.2s}
+    .stat:hover{transform:translateY(-4px);box-shadow:var(--shadow-md)}
+    .stat-v{font-family:'Bebas Neue',sans-serif;font-size:clamp(1.5rem,3.5vw,2rem);color:var(--g)}
+    .stat-l{font-family:'Space Grotesk',monospace;font-size:0.5rem;font-weight:600;letter-spacing:2px;color:var(--mu);text-transform:uppercase;margin-top:6px}
+    .quote{width:100%;max-width:900px;display:flex;gap:18px;background:var(--card-bg);backdrop-filter:blur(20px);border:1px solid var(--border);border-radius:28px;padding:clamp(20px,3.5vw,30px);box-shadow:var(--shadow-sm)}
+    .q-bar{width:5px;border-radius:5px;background:linear-gradient(180deg,var(--c),var(--p),var(--r))}
+    .q-text{font-size:1rem;line-height:1.6;color:var(--tx);margin-bottom:8px;font-weight:500}
+    .q-auth{font-family:'Space Grotesk',monospace;font-size:0.75rem;font-weight:600;color:var(--c)}
+    .scroll-down-btn{
+      display:inline-flex;align-items:center;gap:10px;background:var(--c);color:#fff;border:none;padding:14px 32px;
+      border-radius:var(--radius-pill);font-family:'Space Grotesk',monospace;font-size:0.85rem;font-weight:700;letter-spacing:2px;
+      cursor:pointer;text-transform:uppercase;transition:0.3s;box-shadow:0 8px 30px rgba(0,153,255,0.3);text-decoration:none;
+    }
+    .scroll-down-btn:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(0,153,255,0.5);background:#0080ee}
+    .routine-section,.roadmap-section{
+      position:relative;z-index:1;width:100%;max-width:1200px;margin:0 auto;padding:20px 24px 60px;
+    }
+    .section-inner{
+      background:var(--card-bg);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:32px;
+      padding:clamp(24px,4vw,40px);box-shadow:var(--shadow-md);
+    }
+    .routine-section h2,.roadmap-section h2{font-family:'Bebas Neue',sans-serif;font-size:clamp(2rem,5vw,3.5rem);letter-spacing:3px;color:var(--tx);text-align:center;margin-bottom:8px}
+    .routine-section h2 span,.roadmap-section h2 span{color:var(--c)}
+    .legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;padding:16px 0;margin-bottom:20px}
+    .leg-item{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--mu);font-family:'Space Grotesk',monospace;font-weight:600;letter-spacing:1px}
+    .leg-dot{width:12px;height:12px;border-radius:50%}
+    .phase-header{display:flex;align-items:center;gap:14px;padding:24px 0 12px;cursor:pointer;user-select:none}
+    .phase-header:hover .phase-title{color:var(--c)}
+    .phase-icon{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+    .phase-title{font-size:1.1rem;font-weight:700;color:var(--tx);font-family:'Hind Siliguri',sans-serif}
+    .phase-sub{font-size:12px;color:var(--mu);font-family:'Space Grotesk',monospace}
+    .phase-badge{margin-left:auto;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--mu);padding:4px 14px;border-radius:20px;font-size:11px;font-family:'Space Grotesk',monospace;white-space:nowrap}
+    .days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;padding-bottom:16px;transition:all 0.4s}
+    .days-grid.collapsed{max-height:0;opacity:0;padding:0;margin:0;overflow:hidden}
+    .days-grid.expanded{max-height:99999px;opacity:1}
+    .day-card{background:var(--routine-card);backdrop-filter:blur(12px);border:1px solid var(--routine-border);border-radius:18px;overflow:hidden;transition:0.2s;position:relative}
+    .day-card:hover{transform:translateY(-3px);box-shadow:var(--shadow-md),0 0 18px rgba(0,153,255,0.3);border-color:rgba(0,153,255,0.3)}
+    .day-card.hard{border-color:rgba(248,113,113,0.4)}
+    .day-card.completed{border-color:rgba(52,211,153,0.6)!important;box-shadow:0 0 18px rgba(52,211,153,0.25)}
+    .day-check{position:absolute;top:12px;right:12px;z-index:3;width:30px;height:30px;border-radius:50%;border:2px solid var(--routine-border);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:0.2s;font-size:15px;color:transparent}
+    .day-check.checked{background:var(--accent-b);border-color:var(--accent-b);color:#fff;box-shadow:0 0 12px rgba(52,211,153,0.5)}
+    .day-header{display:flex;align-items:center;justify-content:space-between;padding:14px 48px 14px 16px;border-bottom:1px solid var(--routine-border)}
+    .day-num{font-size:11px;font-weight:700;color:var(--mu);letter-spacing:1.5px;text-transform:uppercase;font-family:'Space Grotesk',monospace}
+    .day-num span{color:var(--tx);font-size:16px;font-weight:800}
+    .hard-badge{background:rgba(248,113,113,0.12);border:1px solid rgba(248,113,113,0.5);color:var(--accent-hard);padding:4px 14px;border-radius:12px;font-size:10px;font-weight:700;font-family:'Space Grotesk',monospace}
+    .day-body{padding:16px}
+    .subject-row{display:flex;gap:10px;margin-bottom:10px;align-items:flex-start}
+    .subj-tag{flex-shrink:0;padding:4px 12px;border-radius:8px;font-size:10px;font-weight:700;letter-spacing:0.5px;margin-top:2px;font-family:'Space Grotesk',monospace;text-transform:uppercase}
+    .subj-tag.P{background:rgba(79,158,255,0.15);color:var(--accent-p)}.subj-tag.C{background:rgba(245,158,11,0.15);color:var(--accent-c)}
+    .subj-tag.B{background:rgba(52,211,153,0.15);color:var(--accent-b)}.subj-tag.M{background:rgba(192,132,252,0.15);color:var(--accent-m)}
+    .chapter-text{font-size:13px;color:var(--tx);line-height:1.5;font-family:'Hind Siliguri',sans-serif}
+    .chapter-text strong{font-weight:700}
+    .practice-row{background:var(--practice);border:1px solid var(--practice-border);border-radius:12px;padding:12px 16px;margin-top:6px;display:flex;gap:10px;align-items:flex-start}
+    .practice-text{font-size:12px;line-height:1.5;font-family:'Hind Siliguri',sans-serif;color:#3b82f6}
+    body.dark-mode .practice-text{color:#93c5fd}
+    .note-chip{display:inline-block;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.3);color:var(--accent-hard);padding:4px 12px;border-radius:10px;font-size:11px;font-weight:600;margin-top:8px;font-family:'Hind Siliguri',sans-serif}
+    .roadmap-step{margin-bottom:30px}
+    .roadmap-step h3{font-family:'Hind Siliguri',sans-serif;font-size:1.5rem;color:var(--c);margin-bottom:12px;display:flex;align-items:center;gap:10px}
+    .roadmap-step h3 span{background:var(--c);color:#fff;width:36px;height:36px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.1rem;font-weight:700}
+    .roadmap-card{background:var(--routine-card);border:1px solid var(--routine-border);border-radius:16px;padding:18px;margin-bottom:12px}
+    .roadmap-card p{margin-bottom:8px;line-height:1.6}
+    .roadmap-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+    .roadmap-table th,.roadmap-table td{border:1px solid var(--routine-border);padding:10px 14px;text-align:left}
+    .roadmap-table th{background:rgba(0,153,255,0.05);font-weight:600}
+    .roadmap-table select,.roadmap-table input{background:var(--bg);color:var(--tx);border:1px solid var(--routine-border);border-radius:8px;padding:6px 10px;font-family:'Plus Jakarta Sans',sans-serif;font-size:13px;width:100%}
+    .roadmap-table select:focus,.roadmap-table input:focus{outline:none;border-color:var(--c)}
+    /* Fixed round developer watermark */
+    .wm{
+      position:fixed;bottom:24px;right:24px;z-index:200;
+      background:var(--card-bg);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);
+      padding:12px 28px;border-radius:100px;border:1px solid var(--border);
+      box-shadow:var(--shadow-md),0 0 25px rgba(0,153,255,0.2);
+      transition:all 0.3s;animation:watermarkGlow 3s ease-in-out infinite;
+    }
+    @keyframes watermarkGlow{0%,100%{box-shadow:0 8px 25px rgba(0,153,255,0.15),0 0 0 1px rgba(0,153,255,0.1)}50%{box-shadow:0 14px 40px rgba(0,153,255,0.3),0 0 0 2px rgba(0,153,255,0.3)}}
+    .wm:hover{transform:translateY(-4px);box-shadow:0 20px 45px rgba(0,153,255,0.4),0 0 0 3px rgba(0,153,255,0.2)}
+    .wm-r{display:block;font-size:0.45rem;letter-spacing:5px;color:var(--mu);margin-bottom:5px;font-family:'Space Grotesk',monospace;text-transform:uppercase;font-weight:600}
+    .wm-n{display:block;font-size:0.85rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;background:linear-gradient(135deg,#00c6ff,#0072ff,#8b5cf6,#ff3366);-webkit-background-clip:text;background-clip:text;color:transparent;font-family:'Space Grotesk',monospace}
+    @keyframes fadeSlideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    @keyframes fadeSlideDown{from{opacity:0;transform:translateY(-15px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:768px){.cd,.stats{grid-template-columns:repeat(2,1fr)}.hud{display:none}.days-grid{grid-template-columns:1fr}.routine-section,.roadmap-section{padding:10px 8px 40px}.wm{bottom:16px;right:16px;padding:8px 20px}}
+    @media(max-width:480px){.wrap{padding:60px 10px 40px}.badge{padding:6px 18px;font-size:0.6rem}.wm{padding:6px 18px}.wm-n{font-size:0.7rem}}
+  </style>
 </head>
-<body class="light-mode">
-
-<canvas id="cvs"></canvas>
-<div class="mesh"></div>
-
-<!-- Control Bar - Top Right (Fixed) -->
+<body class="dark-mode"> <!-- DEFAULT DARK MODE -->
+<canvas id="cvs"></canvas><div class="mesh"></div>
 <div class="control-bar">
-  <button class="ctrl-btn" id="themeToggle"><i>🌙</i> <span data-i18n="theme">DARK</span></button>
-  <button class="ctrl-btn" id="langToggle"><i>🌐</i> <span data-i18n="lang">বাংলা</span></button>
+  <button class="ctrl-btn" id="themeToggle"><i>☀️</i> <span>LIGHT</span></button>
+  <button class="ctrl-btn" id="langToggle"><i>🌐</i> <span>বাংলা</span></button>
 </div>
-
-<!-- HUD - Top Left (Fixed) -->
 <div class="hud">
-  <div class="hud-item"><span class="hl" data-i18n="localTime">Local Time</span><span class="hv c" id="hud-time">--:--</span></div>
+  <div class="hud-item"><span class="hl">Local Time</span><span class="hv c" id="hud-time">--:--</span></div>
   <div class="hud-sep"></div>
-  <div class="hud-item"><span class="hl" data-i18n="todayDate">Today's Date</span><span class="hv" id="hud-date">-- --- ----</span></div>
+  <div class="hud-item"><span class="hl">Today's Date</span><span class="hv" id="hud-date">-- --- ----</span></div>
   <div class="hud-sep"></div>
-  <div class="hud-item">
-    <span class="hl"><span class="weather-icon" id="weather-icon">☀️</span> <span data-i18n="weather">Weather</span></span>
-    <span class="hv" id="weather-temp">--°C</span>
-  </div>
+  <div class="hud-item"><span class="hl"><span id="weather-icon">☀️</span> Weather</span><span class="hv" id="weather-temp">--°C</span></div>
 </div>
 
-<div class="wrap">
-  <div class="badge"><div class="bd"></div><span data-i18n="badge">HSC 2026 Coming — Study Now</span></div>
-  <h1 class="title"><span data-i18n="mission">MISSION</span><br><span class="tc">HSC</span> <span class="tr">26</span></h1>
-  <p class="sub"><span data-i18n="comingOn">COMING ON →</span> <span id="targetDateDisplay">2 JULY 2026 — 10:00 AM</span></p>
+<div class="wrap" id="hero">
+  <div class="badge"><div class="bd"></div><span>HSC 2026 Coming — Study Now</span></div>
+  <h1 class="title">MISSION<br><span class="tc">HSC</span> <span class="tr">26</span></h1>
+  <p class="sub">COMING ON → <span id="targetDateDisplay">2 JULY 2026 — 10:00 AM</span></p>
   <div class="divider"></div>
-
   <div class="cd">
-    <div class="card"><span class="card-idx">01</span><div class="num-wrap"><span class="card-num" id="days">0</span></div><div class="card-lbl" data-i18n="days">Days</div></div>
-    <div class="card"><span class="card-idx">02</span><div class="num-wrap"><span class="card-num" id="hours">00</span></div><div class="card-lbl" data-i18n="hours">Hours</div></div>
-    <div class="card"><span class="card-idx">03</span><div class="num-wrap"><span class="card-num" id="minutes">00</span></div><div class="card-lbl" data-i18n="minutes">Minutes</div></div>
-    <div class="card card-sec"><span class="card-idx">04</span><div class="num-wrap"><span class="card-num" id="seconds">00</span></div><div class="card-lbl" data-i18n="seconds">Seconds</div></div>
+    <div class="card"><span class="card-idx">01</span><div class="num-wrap"><span class="card-num" id="days">0</span></div><div class="card-lbl">Days</div></div>
+    <div class="card"><span class="card-idx">02</span><div class="num-wrap"><span class="card-num" id="hours">00</span></div><div class="card-lbl">Hours</div></div>
+    <div class="card"><span class="card-idx">03</span><div class="num-wrap"><span class="card-num" id="minutes">00</span></div><div class="card-lbl">Minutes</div></div>
+    <div class="card card-sec"><span class="card-idx">04</span><div class="num-wrap"><span class="card-num" id="seconds">00</span></div><div class="card-lbl">Seconds</div></div>
   </div>
-
   <div class="prog">
-    <div class="prog-head"><span class="prog-lbl" data-i18n="progress">OVERALL PROGRESS</span><span class="prog-pct" id="bar-pct">0.00%</span></div>
+    <div class="prog-head"><span class="prog-lbl">OVERALL PROGRESS</span><span class="prog-pct" id="bar-pct">0.00%</span></div>
     <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
   </div>
-
   <div class="stats">
-    <div class="stat"><span class="stat-v" id="st-h">—</span><span class="stat-l" data-i18n="hoursLeft">Hours Left</span></div>
-    <div class="stat"><span class="stat-v" id="st-m">—</span><span class="stat-l" data-i18n="minutesLeft">Minutes Left</span></div>
-    <div class="stat"><span class="stat-v" id="st-w">—</span><span class="stat-l" data-i18n="weeksLeft">Weeks Left</span></div>
-    <div class="stat"><span class="stat-v" id="st-s">—</span><span class="stat-l" data-i18n="secondsLeft">Seconds Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-h">—</span><span class="stat-l">Hours Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-m">—</span><span class="stat-l">Minutes Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-w">—</span><span class="stat-l">Weeks Left</span></div>
+    <div class="stat"><span class="stat-v" id="st-s">—</span><span class="stat-l">Seconds Left</span></div>
   </div>
-
   <div class="quote"><div class="q-bar"></div><div style="flex:1"><p class="q-text" id="qt"></p><p class="q-auth" id="qa"></p></div></div>
+  <a href="#routine" class="scroll-down-btn">📋 View Full Routine <span>↓</span></a>
+  <a href="#roadmap" class="scroll-down-btn" style="background:var(--p);margin-top:12px;">📘 Ultimate Roadmap <span>↓</span></a>
 </div>
 
-<!-- Developer Watermark - Bottom Right (Fixed) -->
-<div class="wm">
-  <span class="wm-r">DEVELOPED BY</span>
-  <span class="wm-n">Shahriar Naim Or Rashid</span>
+<div class="routine-section" id="routine">
+  <div class="section-inner">
+    <h2>📚 <span>৪৫ দিনের</span> সম্পূর্ণ পড়ার রুটিন</h2>
+    <p style="text-align:center;color:var(--mu);font-family:'Space Grotesk',monospace;font-size:0.75rem;margin-bottom:20px;">HSC 2026 · ২য় পত্র আগে · পদার্থ · রসায়ন · জীববিজ্ঞান · গণিত</p>
+    <div class="legend">
+      <div class="leg-item"><div class="leg-dot" style="background:#4f9eff"></div> পদার্থ (P)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f59e0b"></div> রসায়ন (C)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#34d399"></div> জীববিজ্ঞান (B)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#c084fc"></div> গণিত (M)</div>
+      <div class="leg-item"><div class="leg-dot" style="background:#f87171"></div> কঠিন দিন</div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+      <span style="font-family:'Space Grotesk',monospace;font-size:0.7rem;letter-spacing:2px;color:var(--mu);">📋 CHECKLIST — <span id="completed-count">0</span>/45 DAYS DONE</span>
+      <button class="reset-btn" onclick="resetAllProgress()" style="background:transparent;border:1px solid var(--routine-border);color:var(--mu);padding:8px 18px;border-radius:20px;cursor:pointer;font-family:'Space Grotesk',monospace;font-size:0.65rem;letter-spacing:2px;">🔄 Reset Progress</button>
+    </div>
+    <div id="routine-content"></div>
+  </div>
 </div>
+
+<div class="roadmap-section" id="roadmap">
+  <div class="section-inner">
+    <h2>🧭 <span>ULTIMATE STUDY ROADMAP</span></h2>
+    <p style="text-align:center;color:var(--mu);margin-bottom:30px;font-family:'Space Grotesk',monospace;">৫০ দিনে সর্বোচ্চ রেজাল্টের সম্পূর্ণ গাইডলাইন</p>
+    <div class="roadmap-step"><h3><span>১</span> মূল দর্শন — ৩টি নিয়ম মানা</h3>
+      <div class="roadmap-card"><p><strong>১. RESULT = EFFORT × TIME</strong><br>তোমার রেজাল্ট নির্ধারিত হয় তোমার প্রচেষ্টা এবং সময়ের গুণফলে। সময় কম থাকলে effort বাড়াতে হবে।</p></div>
+      <div class="roadmap-card"><p><strong>২. SINCERITY = প্রতিদিন</strong><br>Sincerity মানে নিজের কাছে honest থাকা। প্রতিদিনের কাজ প্রতিদিন করা — কোনো excuse নয়।</p></div>
+      <div class="roadmap-card"><p><strong>৩. TIMELINE = আমার নেভিগেটর</strong><br>প্রতিদিন countdown দেখো। টাইমলাইন তোমার brain-কে alert রাখবে যে সময় ফুরিয়ে যাচ্ছে।</p></div>
+      <p style="font-weight:700;">মূল সমীকরণ: Result = Effort × Time — হাতে সময় কম → effort দ্বিগুণ করো → result একই থাকবে।</p>
+    </div>
+    <div class="roadmap-step"><h3><span>২</span> টাইমলাইন ম্যাপিং</h3>
+      <div class="roadmap-card"><p>প্রতিদিন countdown দেখো, টেবিলের সামনে calendar রাখো, প্রতিটি খাতার উপরে date ও remaining days লিখো। সকালে উঠে প্রথম কাজ: আর কতদিন বাকি?</p></div>
+    </div>
+    <div class="roadmap-step"><h3><span>৩</span> Subject Analysis <small style="color:var(--mu);">(তোমার অবস্থা select করো — করণীয় auto-fill হবে)</small></h3>
+      <div class="roadmap-card" id="subject-analysis-container">
+        <table class="roadmap-table" id="subject-analysis-table">
+          <thead><tr><th>বিষয়</th><th>বর্তমান অবস্থা</th><th>লক্ষ্য গ্রেড</th><th>করণীয়</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p style="margin-top:12px;font-size:0.8rem;color:var(--mu);">* প্রতিটি বিষয়ের বর্তমান অবস্থা select করলে স্বয়ংক্রিয়ভাবে করণীয় জেনারেট হবে এবং সেভ হবে।</p>
+      </div>
+    </div>
+    <div class="roadmap-step"><h3><span>৪</span> ৫০-দিনের Master Plan</h3>
+      <div class="roadmap-card"><p><strong>Phase 1 (দিন ১-২০):</strong> Foundation Build — দুর্বল subject ঠিক করো, প্রতিদিন ২টি দুর্বল subject-এ দেড় ঘন্টা, topic-by-topic পড়ো।</p></div>
+      <div class="roadmap-card"><p><strong>Phase 2 (দিন ২১-৪০):</strong> Strengthen & Practice — MCQ+CQ practice, বোর্ড প্রশ্ন pattern analyze, দুর্বল topics revise।</p></div>
+      <div class="roadmap-card"><p><strong>Phase 3 (দিন ৪১-৫০):</strong> Final Revision & Mock — quick revision, mock test, important chapters focus, মানসিক প্রস্তুতি।</p></div>
+    </div>
+    <div class="roadmap-step"><h3><span>৫</span> আদর্শ দৈনিক রুটিন</h3>
+      <div class="roadmap-card">
+        <table class="roadmap-table"><tr><th>সময়</th><th>কাজ</th></tr>
+        <tr><td>৫:০০-৫:৩০</td><td>Fajr + workout</td></tr><tr><td>৫:৩০-৭:৩০</td><td>১ম দুর্বল subject</td></tr>
+        <tr><td>৮:০০-১০:০০</td><td>২য় দুর্বল subject</td></tr><tr><td>১০:১৫-১২:১৫</td><td>Class / ৩য় subject</td></tr>
+        <tr><td>১:৩০-৩:৩০</td><td>MCQ Practice</td></tr><tr><td>৩:৩০-৫:৩০</td><td>Class / strong revision</td></tr>
+        <tr><td>৬:৩০-৮:৩০</td><td>কঠিন topic</td></tr><tr><td>৯:০০-১০:৩০</td><td>হালকা revision + পরের plan</td></tr></table>
+        <p style="margin-top:10px;"><strong>Daily Minimum Target:</strong> Self-study ৮ ঘন্টা, ১টি দুর্বল subject দেড় ঘন্টা, sleep ৬.৫-৭ ঘন্টা।</p>
+      </div>
+    </div>
+    <p style="text-align:center;margin-top:30px;font-weight:700;font-family:'Hind Siliguri',sans-serif;">"প্রতিদিনের কাজ প্রতিদিন করো — তাহলে তুমি ভালো করবে। এটা motivation নয়, এটা calculation।"</p>
+  </div>
+</div>
+
+<div class="wm"><span class="wm-r">DEVELOPED BY</span><span class="wm-n">Shahriar Naim Or Rashid</span></div>
 
 <script>
-  (function(){
-    "use strict";
-    
-    /* ════════════════════════════════════════════════════════════════════
-       RGB MINI PARTICLES - Colorful animated background
-    ════════════════════════════════════════════════════════════════════ */
-    const cvs = document.getElementById('cvs');
-    const ctx = cvs.getContext('2d');
-    let W, H, particles = [];
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-    
-    const colors = [
-      'rgba(255, 51, 102, 0.4)', 'rgba(0, 153, 255, 0.4)', 'rgba(255, 170, 0, 0.4)',
-      'rgba(139, 92, 246, 0.4)', 'rgba(0, 255, 200, 0.4)', 'rgba(255, 80, 150, 0.4)'
-    ];
-    
-    const getParticleCount = () => {
-      const w = window.innerWidth;
-      if (w < 480) return 25; if (w < 768) return 35; if (w < 1280) return 50; return 70;
-    };
-    
-    function resizeCanvas() {
-      W = cvs.width = window.innerWidth;
-      H = cvs.height = window.innerHeight;
-      const targetCount = getParticleCount();
-      if (particles.length !== targetCount) {
-        particles = Array.from({ length: targetCount }, () => new RGBParticle());
-      }
+(function(){
+  // ─── STORAGE ───────────────────────────
+  const STORAGE_KEY='hsc26_v3', THEME_KEY='hsc26_theme', LANG_KEY='hsc26_lang', SUBJ_KEY='hsc26_subjects';
+  let appData, currentLang;
+  try { appData = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {completedDays:[], phaseStates:{}} } catch(e) { appData = {completedDays:[], phaseStates:{}} }
+  try { currentLang = localStorage.getItem(LANG_KEY) || 'en' } catch(e) { currentLang='en' }
+
+  function save() { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(appData)); } catch(e) {} }
+  function isDayCompleted(n) { return appData.completedDays.includes(n) }
+  function toggleDay(n) {
+    const i = appData.completedDays.indexOf(n);
+    if (i>=0) appData.completedDays.splice(i,1); else appData.completedDays.push(n);
+    save(); renderAllDays(); updateCompletedCount();
+  }
+  function resetAllProgress() {
+    if (confirm('Reset all progress? This will also reset subject analysis.')) {
+      appData.completedDays = []; appData.phaseStates = {};
+      save(); renderAllDays(); updateCompletedCount();
+      localStorage.removeItem(SUBJ_KEY);
+      renderSubjectAnalysis();
     }
-    window.addEventListener('resize', resizeCanvas);
-    
-    class RGBParticle {
-      constructor() { this.reset(); this.color = colors[Math.floor(Math.random() * colors.length)]; }
-      reset() {
-        this.x = Math.random() * W; this.y = Math.random() * H;
-        this.vx = (Math.random() - 0.5) * 0.3; this.vy = (Math.random() - 0.5) * 0.3;
-        this.size = Math.random() * 2 + 1;
-        this.color = colors[Math.floor(Math.random() * colors.length)];
-      }
-      update() {
-        this.x += this.vx; this.y += this.vy;
-        if (this.x < 0) this.x = W; if (this.x > W) this.x = 0;
-        if (this.y < 0) this.y = H; if (this.y > H) this.y = 0;
-        if (Math.random() < 0.01) { this.vx += (Math.random() - 0.5) * 0.1; this.vy += (Math.random() - 0.5) * 0.1; }
-        const speed = Math.hypot(this.vx, this.vy);
-        if (speed > 0.5) { this.vx *= 0.5 / speed; this.vy *= 0.5 / speed; }
-      }
-      draw() {
-        ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = this.color; ctx.fill();
-        ctx.shadowColor = this.color.replace('0.4', '0.6'); ctx.shadowBlur = 8; ctx.fill(); ctx.shadowBlur = 0;
-      }
+  }
+  function updateCompletedCount() {
+    const el = document.getElementById('completed-count');
+    if (el) el.textContent = appData.completedDays.length;
+  }
+  function getPhaseState(pid) { return appData.phaseStates[pid]===undefined?true:appData.phaseStates[pid] }
+  function togglePhase(pid) {
+    appData.phaseStates[pid] = !getPhaseState(pid);
+    save(); applyPhaseState(pid);
+  }
+  function applyPhaseState(pid) {
+    const grid = document.getElementById('phase-grid-'+pid), header = document.getElementById('phase-header-'+pid);
+    if (grid && header) {
+      const open = getPhaseState(pid);
+      grid.classList.toggle('collapsed', !open);
+      grid.classList.toggle('expanded', open);
+      header.classList.toggle('open', open);
     }
-    
-    resizeCanvas();
-    
-    if (!prefersReduced) {
-      let lastTimestamp = 0; const fpsInterval = 1000 / 30;
-      function animationLoop(now) {
-        requestAnimationFrame(animationLoop);
-        if (now - lastTimestamp < fpsInterval) return;
-        lastTimestamp = now;
-        ctx.clearRect(0, 0, W, H);
-        for (let i = 0; i < particles.length; i++) {
-          for (let j = i + 1; j < particles.length; j++) {
-            const dx = particles[i].x - particles[j].x, dy = particles[i].y - particles[j].y;
-            const dist = Math.hypot(dx, dy);
-            if (dist < 100) {
-              ctx.beginPath(); ctx.moveTo(particles[i].x, particles[i].y); ctx.lineTo(particles[j].x, particles[j].y);
-              ctx.strokeStyle = `rgba(150, 150, 255, ${(1 - dist / 100) * 0.15})`; ctx.lineWidth = 0.5; ctx.stroke();
-            }
+  }
+
+  // ─── i18n ─────────────────────────────
+  const i18n = {
+    en: { theme:'LIGHT', lang:'বাংলা', localTime:'Local Time', todayDate:"Today's Date", weather:'Weather', badge:'HSC 2026 Coming — Study Now', mission:'MISSION', comingOn:'COMING ON →', days:'Days', hours:'Hours', minutes:'Minutes', seconds:'Seconds', progress:'OVERALL PROGRESS', hoursLeft:'Hours Left', minutesLeft:'Minutes Left', weeksLeft:'Weeks Left', secondsLeft:'Seconds Left', missionAccomplished:'MISSION<br>ACCOMPLISHED', examDay:'HSC 2026 — EXAM DAY HAS ARRIVED', targetDate:'2 JULY 2026 — 10:00 AM' },
+    bn: { theme:'LIGHT', lang:'English', localTime:'স্থানীয় সময়', todayDate:'আজকের তারিখ', weather:'আবহাওয়া', badge:'এইচএসসি ২০২৬ আসছে — এখনই পড়ুন', mission:'মিশন', comingOn:'শুরু হচ্ছে →', days:'দিন', hours:'ঘন্টা', minutes:'মিনিট', seconds:'সেকেন্ড', progress:'সার্বিক অগ্রগতি', hoursLeft:'বাকি ঘন্টা', minutesLeft:'বাকি মিনিট', weeksLeft:'বাকি সপ্তাহ', secondsLeft:'বাকি সেকেন্ড', missionAccomplished:'মিশন<br>সফল', examDay:'এইচএসসি ২০২৬ — পরীক্ষার দিন এসে গেছে', targetDate:'২ জুলাই ২০২৬ — সকাল ১০:০০' }
+  };
+  function t(key) { return i18n[currentLang]?.[key] || i18n.en[key] || key }
+  function updateUIText() {
+    document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if (k) el.textContent = t(k) });
+    document.getElementById('targetDateDisplay').textContent = t('targetDate');
+    document.querySelector('#langToggle span').textContent = t('lang');
+    document.querySelector('#themeToggle span').textContent = t('theme');
+    document.querySelector('.badge span').textContent = t('badge');
+    document.querySelectorAll('.card-lbl').forEach((el,i) => el.textContent = t(['days','hours','minutes','seconds'][i]));
+    document.querySelectorAll('.stat-l').forEach((el,i) => el.textContent = t(['hoursLeft','minutesLeft','weeksLeft','secondsLeft'][i]));
+    document.querySelector('.prog-lbl').textContent = t('progress');
+  }
+  document.getElementById('langToggle').addEventListener('click', () => {
+    currentLang = currentLang==='en' ? 'bn' : 'en';
+    localStorage.setItem(LANG_KEY, currentLang);
+    updateUIText();
+  });
+
+  // ─── THEME (default dark) ─────────────
+  const themeToggle = document.getElementById('themeToggle'), body = document.body, themeIcon = themeToggle.querySelector('i');
+  function setTheme(dark) {
+    body.classList.toggle('dark-mode', dark);
+    body.classList.toggle('light-mode', !dark);
+    themeIcon.textContent = dark ? '☀️' : '🌙';
+    themeToggle.querySelector('span').textContent = dark ? 'LIGHT' : 'DARK';
+    localStorage.setItem(THEME_KEY, dark?'dark':'light');
+  }
+  // Set default to dark mode
+  const savedTheme = localStorage.getItem(THEME_KEY) || 'dark';
+  setTheme(savedTheme === 'dark');
+  themeToggle.addEventListener('click', () => setTheme(!body.classList.contains('dark-mode')));
+
+  updateUIText();
+
+  // ─── PARTICLES ────────────────────────
+  const cvs = document.getElementById('cvs'), ctx = cvs.getContext('2d');
+  let W, H, particles = [];
+  const colors = ['rgba(0,153,255,0.5)','rgba(255,51,102,0.4)','rgba(139,92,246,0.4)','rgba(0,255,200,0.3)'];
+  class RGBParticle {
+    constructor() { this.reset() }
+    reset() {
+      this.x = Math.random()*W; this.y = Math.random()*H;
+      this.vx = (Math.random()-0.5)*0.4; this.vy = (Math.random()-0.5)*0.4;
+      this.size = Math.random()*2.5+1;
+      this.color = colors[Math.floor(Math.random()*colors.length)];
+    }
+    update() {
+      this.x += this.vx; this.y += this.vy;
+      if (this.x<0) this.x=W; if (this.x>W) this.x=0;
+      if (this.y<0) this.y=H; if (this.y>H) this.y=0;
+      if (Math.random()<0.01) { this.vx += (Math.random()-0.5)*0.15; this.vy += (Math.random()-0.5)*0.15; }
+      const s = Math.hypot(this.vx,this.vy);
+      if (s>0.6) { this.vx *= 0.6/s; this.vy *= 0.6/s; }
+    }
+    draw() {
+      ctx.beginPath(); ctx.arc(this.x,this.y,this.size,0,Math.PI*2);
+      ctx.fillStyle = this.color; ctx.fill();
+      ctx.shadowColor = this.color; ctx.shadowBlur = 10; ctx.fill(); ctx.shadowBlur = 0;
+    }
+  }
+  function resizeCanvas() {
+    W = cvs.width = window.innerWidth; H = cvs.height = window.innerHeight;
+    const cnt = window.innerWidth<480 ? 30 : window.innerWidth<768 ? 45 : 70;
+    if (particles.length !== cnt) particles = Array.from({length:cnt}, ()=>new RGBParticle());
+  }
+  window.addEventListener('resize', resizeCanvas); resizeCanvas();
+  if (!window.matchMedia('(prefers-reduced-motion:reduce)').matches) {
+    let lt = 0;
+    function loop(now) {
+      requestAnimationFrame(loop); if (now-lt < 1000/30) return; lt = now;
+      ctx.clearRect(0,0,W,H);
+      particles.forEach(p => { p.update(); p.draw(); });
+      for (let i=0; i<particles.length; i++) {
+        for (let j=i+1; j<particles.length; j++) {
+          const dx = particles[i].x-particles[j].x, dy = particles[i].y-particles[j].y;
+          const dist = Math.hypot(dx,dy);
+          if (dist<120) {
+            ctx.beginPath(); ctx.moveTo(particles[i].x,particles[i].y); ctx.lineTo(particles[j].x,particles[j].y);
+            ctx.strokeStyle = `rgba(0,153,255,${(1-dist/120)*0.15})`; ctx.lineWidth = 0.6; ctx.stroke();
           }
-          particles[i].update(); particles[i].draw();
         }
       }
-      requestAnimationFrame(animationLoop);
     }
+    requestAnimationFrame(loop);
+  }
 
-    /* ─────────────── WEATHER ─────────────── */
-    const weatherIcon = document.getElementById('weather-icon'), weatherTemp = document.getElementById('weather-temp');
-    const weatherConditions = [
-      { icon: '☀️', temp: 28 }, { icon: '⛅', temp: 25 }, { icon: '☁️', temp: 22 },
-      { icon: '🌧️', temp: 20 }, { icon: '🌤️', temp: 26 }
-    ];
-    function updateWeather() {
-      const hour = new Date().getHours(); let idx;
-      if (hour >= 6 && hour < 10) idx = 4; else if (hour >= 10 && hour < 16) idx = 0;
-      else if (hour >= 16 && hour < 19) idx = 1; else idx = 2;
-      const w = weatherConditions[idx]; weatherIcon.textContent = w.icon; weatherTemp.textContent = `${w.temp}°C`;
+  // ─── WEATHER ──────────────────────────
+  const wIcon = document.getElementById('weather-icon'), wTemp = document.getElementById('weather-temp');
+  const wConditions = [{icon:'☀️',temp:28},{icon:'⛅',temp:25},{icon:'☁️',temp:22},{icon:'🌧️',temp:20},{icon:'🌤️',temp:26}];
+  function updateWeather() {
+    const h = new Date().getHours();
+    let i = h>=6&&h<10?4 : h>=10&&h<16?0 : h>=16&&h<19?1 : 2;
+    wIcon.textContent = wConditions[i].icon; wTemp.textContent = wConditions[i].temp+'°C';
+  }
+  updateWeather(); setInterval(updateWeather, 60000);
+
+  // ─── COUNTDOWN ────────────────────────
+  const TARGET = new Date('July 2, 2026 10:00:00').getTime(), START = new Date('April 18, 2026 00:00:00').getTime();
+  const elD=document.getElementById('days'),elH=document.getElementById('hours'),elM=document.getElementById('minutes'),elS=document.getElementById('seconds');
+  const elFill=document.getElementById('prog-fill'),elPct=document.getElementById('bar-pct');
+  const elStH=document.getElementById('st-h'),elStM=document.getElementById('st-m'),elStW=document.getElementById('st-w'),elStS=document.getElementById('st-s');
+  function tick() {
+    const now = Date.now(), dist = TARGET-now, total = TARGET-START;
+    if (dist<=0) {
+      document.querySelector('.wrap').innerHTML = `<h1 style="font-family:'Bebas Neue',sans-serif;font-size:4rem;color:var(--c);">${t('missionAccomplished')}</h1>`;
+      return;
     }
-    updateWeather(); setInterval(updateWeather, 60000);
+    const d = Math.floor(dist/86400000), h = Math.floor((dist%86400000)/3600000), m = Math.floor((dist%3600000)/60000), s = Math.floor((dist%60000)/1000);
+    elD.textContent = d; elH.textContent = String(h).padStart(2,'0'); elM.textContent = String(m).padStart(2,'0'); elS.textContent = String(s).padStart(2,'0');
+    const pct = ((total-dist)/total*100).toFixed(4); elFill.style.width = pct+'%'; elPct.textContent = pct+'%';
+    elStH.textContent = Math.floor(dist/3600000).toLocaleString(); elStM.textContent = Math.floor(dist/60000).toLocaleString();
+    elStW.textContent = Math.floor(d/7); elStS.textContent = Math.floor(dist/1000).toLocaleString();
+    const nd = new Date();
+    document.getElementById('hud-time').textContent = nd.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('hud-date').textContent = nd.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}).toUpperCase();
+  }
+  setInterval(tick, 1000); tick();
 
-    /* ─────────────── FLIP ─────────────── */
-    const busy = new WeakSet(); const motionSafe = !prefersReduced;
-    function flipNum(el, newVal) {
-      if (el.textContent === newVal) return;
-      if (!motionSafe || busy.has(el)) { el.textContent = newVal; return; }
-      busy.add(el); el.classList.add('flip-out');
-      setTimeout(() => { el.textContent = newVal; el.classList.remove('flip-out'); el.classList.add('flip-in');
-        setTimeout(() => { el.classList.remove('flip-in'); busy.delete(el); }, 250); }, 180);
+  // ─── QUOTES ───────────────────────────
+  const quotes = [
+    {t:"Success is the sum of small efforts, repeated day in and day out.",a:"Robert Collier"},
+    {t:"The secret of getting ahead is getting started.",a:"Mark Twain"},
+    {t:"Don't watch the clock. Do what it does — keep going.",a:"Sam Levenson"},
+    {t:"Your future is created by what you do today, not tomorrow.",a:"Robert Kiyosaki"},
+    {t:"Believe you can and you're halfway there.",a:"Theodore Roosevelt"}
+  ];
+  let qi=0; const qtEl=document.getElementById('qt'), qaEl=document.getElementById('qa');
+  function nextQuote() {
+    const q = quotes[qi%quotes.length];
+    qtEl.style.opacity='0';
+    setTimeout(()=>{ qtEl.textContent='“'+q.t+'”'; qaEl.textContent='— '+q.a; qtEl.style.opacity='1'; },400);
+    qi++;
+  }
+  nextQuote(); setInterval(nextQuote, 9500);
+
+  // ─── SUBJECT ANALYSIS (interactive) ───
+  const subjectList = ['বাংলা','English','ICT','Physics','Chemistry','Math','Biology'];
+  const defaultStatus = 'Fail'; // default current status
+  const targetGrade = 'A+'; // fixed target
+
+  function getSubjectData() {
+    try { return JSON.parse(localStorage.getItem(SUBJ_KEY)) || {} } catch(e) { return {} }
+  }
+  function saveSubjectData(data) { localStorage.setItem(SUBJ_KEY, JSON.stringify(data)) }
+
+  function getRecommendation(current) {
+    switch(current) {
+      case 'Fail': return 'প্রতিদিন ৩+ ঘন্টা, বোর্ড প্রশ্ন দেখো, minimal marks টার্গেট করো।';
+      case 'C': return 'প্রতিদিন ১.৫ ঘন্টা, MCQ ও CQ practice, basic clear করো।';
+      case 'B': return 'দেড় ঘন্টা daily, দুর্বল topics ফোকাস, advanced practice দাও।';
+      case 'A': return '১ ঘন্টা practice, advanced problems, A+ এ নিতে extra MCQ।';
+      case 'A+': return 'শুধু revision ও mock test দাও, confident রাখো।';
+      default: return 'প্রতিদিন ২ ঘন্টা, topic-by-topic পড়ো।';
     }
+  }
 
-    /* ─────────────── COUNTDOWN ─────────────── */
-    const TARGET = new Date('July 2, 2026 10:00:00').getTime(), START = new Date('April 18, 2026 00:00:00').getTime();
-    let prev = { d: null, h: null, m: null }; const pad = n => String(Math.floor(n)).padStart(2, '0');
-    const elDays = document.getElementById('days'), elHrs = document.getElementById('hours'), elMin = document.getElementById('minutes'), elSec = document.getElementById('seconds');
-    const elFill = document.getElementById('prog-fill'), elPct = document.getElementById('bar-pct');
-    const elH = document.getElementById('st-h'), elM = document.getElementById('st-m'), elW = document.getElementById('st-w'), elS = document.getElementById('st-s');
+  function renderSubjectAnalysis() {
+    const tbody = document.querySelector('#subject-analysis-table tbody');
+    if (!tbody) return;
+    const data = getSubjectData();
+    tbody.innerHTML = '';
+    subjectList.forEach(sub => {
+      const current = data[sub] || defaultStatus;
+      const rec = getRecommendation(current);
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td style="font-weight:600;">${sub}</td>
+        <td>
+          <select class="subject-status" data-subject="${sub}">
+            <option value="Fail" ${current==='Fail'?'selected':''}>Fail</option>
+            <option value="C" ${current==='C'?'selected':''}>C</option>
+            <option value="B" ${current==='B'?'selected':''}>B</option>
+            <option value="A" ${current==='A'?'selected':''}>A</option>
+            <option value="A+" ${current==='A+'?'selected':''}>A+</option>
+          </select>
+        </td>
+        <td><strong>${targetGrade}</strong></td>
+        <td class="recommendation-cell">${rec}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+    // Attach event listeners
+    document.querySelectorAll('.subject-status').forEach(select => {
+      select.addEventListener('change', function() {
+        const sub = this.getAttribute('data-subject');
+        const val = this.value;
+        const data = getSubjectData();
+        data[sub] = val;
+        saveSubjectData(data);
+        // update recommendation cell
+        const row = this.closest('tr');
+        const recCell = row.querySelector('.recommendation-cell');
+        if (recCell) recCell.textContent = getRecommendation(val);
+      });
+    });
+  }
+  renderSubjectAnalysis();
 
-    function tick() {
-      const now = Date.now(), dist = TARGET - now, total = TARGET - START;
-      if (dist <= 0) {
-        document.querySelector('.wrap').innerHTML = `<div style="text-align:center"><h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,12vw,7rem);color:var(--c);">${i18nText('missionAccomplished')}</h1><p style="color:var(--mu);margin-top:20px;">${i18nText('examDay')}</p></div>`;
-        return;
-      }
-      const d = Math.floor(dist / 86400000), h = Math.floor((dist % 86400000) / 3600000), m = Math.floor((dist % 3600000) / 60000), s = Math.floor((dist % 60000) / 1000);
-      const dS = String(d), hS = pad(h), mS = pad(m), sS = pad(s);
-      if (dS !== prev.d) { flipNum(elDays, dS); prev.d = dS; } if (hS !== prev.h) { flipNum(elHrs, hS); prev.h = hS; } if (mS !== prev.m) { flipNum(elMin, mS); prev.m = mS; }
-      elSec.textContent = sS;
-      const pct = Math.min(((total - dist) / total) * 100, 100); elFill.style.width = pct + '%'; elPct.textContent = pct.toFixed(4) + '%';
-      elH.textContent = Math.floor(dist / 3600000).toLocaleString(); elM.textContent = Math.floor(dist / 60000).toLocaleString(); elW.textContent = Math.floor(d / 7); elS.textContent = Math.floor(dist / 1000).toLocaleString();
-      const nowDate = new Date();
-      document.getElementById('hud-time').textContent = nowDate.toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
-      document.getElementById('hud-date').textContent = nowDate.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }).toUpperCase();
-    }
-    setInterval(tick, 1000); tick();
+  // ─── ROUTINE DATA (2nd papers first) ──
+  const routineDays = [
+    {day:1,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>স্থির তড়িৎ</strong> (অধ্যায় ২) — Coulomb, capacitor, electric field.'},{tag:'C',code:'C2',text:'<strong>পরিবেশ রসায়ন</strong> (অধ্যায় ১) — Greenhouse, ozone, acid rain.'},{tag:'B',code:'B2',text:'<strong>প্রাণীর বিভিন্নতা ও শ্রেণিবিন্যাস</strong> (অধ্যায় ১)'}]},
+    {day:2,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>চলতড়িৎ</strong> (অধ্যায় ৩) — Ohm, Kirchhoff, Wheatstone bridge.'},{tag:'M',code:'M2',text:'<strong>জটিল সংখ্যা</strong> (অধ্যায় ৩) — De Moivre, Argand diagram.'},{tag:'B',code:'B2',text:'<strong>প্রাণীর পরিচিতি</strong> (অধ্যায় ২) — Hydra, earthworm.'}],practice:'P2 স্থির তড়িৎ — 30 MCQ + 2 CQ'},
+    {day:3,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>তড়িৎ প্রবাহের চৌম্বক ক্রিয়া</strong> (অধ্যায় ৪) — Biot-Savart.'},{tag:'M',code:'M2',text:'<strong>বহুপদী ও সমীকরণ</strong> (অধ্যায় ৪) — Vieta, roots.'},{tag:'B',code:'B2',text:'<strong>পরিপাক ও শোষণ</strong> (অধ্যায় ৩)'}],practice:'P2 চলতড়িৎ — 25 MCQ + 2 CQ'},
+    {day:4,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>তড়িৎচৌম্বকীয় আবেশ</strong> (অধ্যায় ৫) — Faraday, AC, transformer.'},{tag:'M',code:'M2',text:'<strong>দ্বিপদী বিস্তৃতি</strong> (অধ্যায় ৫)'},{tag:'B',code:'B2',text:'<strong>রক্ত ও সংবহন</strong> (অধ্যায় ৪)'}],practice:'P2 চৌম্বক ক্রিয়া — 25 MCQ + 2 CQ'},
+    {day:5,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>জ্যামিতিক আলোকবিজ্ঞান</strong> (অধ্যায় ৬) — lens, mirror.'},{tag:'M',code:'M2',text:'<strong>কণিক</strong> (অধ্যায় ৬) — parabola, ellipse.'},{tag:'B',code:'B2',text:'<strong>শ্বসন ও শ্বাসক্রিয়া</strong> (অধ্যায় ৫)'}],practice:'P2 আবেশ — 30 MCQ + 2 CQ'},
+    {day:6,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>ভৌত আলোকবিজ্ঞান</strong> (অধ্যায় ৭) — interference, diffraction.'},{tag:'M',code:'M2',text:'<strong>ত্রিকোণমিতিক ফাংশন</strong> (অধ্যায় ৭) — inverse trig, equations.'},{tag:'B',code:'B2',text:'<strong>বর্জ্য ও নিষ্কাশন</strong> (অধ্যায় ৬)'}],practice:'P2 জ্যামিতিক আলোক — 30 MCQ + 2 CQ'},
+    {day:7,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>আধুনিক পদার্থবিজ্ঞান</strong> (অধ্যায় ৮) — photoelectric, X-ray.'},{tag:'M',code:'M2',text:'<strong>স্থিতিবিদ্যা</strong> (অধ্যায় ৮) — forces, equilibrium.'},{tag:'B',code:'B2',text:'<strong>চলন ও অঙ্গচালনা</strong> (অধ্যায় ৭)'}],practice:'P2 ভৌত আলোক — 25 MCQ + 2 CQ'},
+    {day:8,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>পরমাণুর মডেল ও নিউক্লিয়ার</strong> (অধ্যায় ৯) — Bohr, radioactivity.'},{tag:'M',code:'M2',text:'<strong>সমতলে বস্তুকণার গতি</strong> (অধ্যায় ৯) — projectile.'},{tag:'B',code:'B2',text:'<strong>সমন্বয় ও নিয়ন্ত্রণ</strong> (অধ্যায় ৮)'}],practice:'P2 আধুনিক — 25 MCQ + 2 CQ'},
+    {day:9,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>সেমিকন্ডাকটর</strong> (অধ্যায় ১০) — p-n junction, transistor.'},{tag:'M',code:'M2',text:'<strong>বিস্তার পরিমাপ ও সম্ভাবনা</strong> (অধ্যায় ১০)'},{tag:'B',code:'B2',text:'<strong>জীবনের ধারাবাহিকতা</strong> (অধ্যায় ৯)'}],practice:'M2 স্থিতিবিদ্যা — 20 MCQ + 2 CQ'},
+    {day:10,phase:1,subjects:[{tag:'C',code:'C2',text:'<strong>জৈব রসায়ন</strong> (অধ্যায় ২) — IUPAC, hydrocarbon reactions.'}],hard:true,practice:'P2 পরমাণু — 25 MCQ + 2 CQ',note:'⚠️ আজ শুধু জৈব রসায়ন — পুরো দিন'},
+    {day:11,phase:1,subjects:[{tag:'C',code:'C2',text:'<strong>তড়িৎ রসায়ন</strong> (অধ্যায় ৪) — cell, Faraday, electrolysis.'},{tag:'B',code:'B2',text:'<strong>মানবদেহের প্রতিরক্ষা</strong> (অধ্যায় ১০)'},{tag:'P',code:'P2',text:'<strong>জ্যোতির্বিজ্ঞান</strong> (অধ্যায় ১১) ✅ P2 শেষ'}],practice:'C2 জৈব রসায়ন — 30 MCQ + 3 CQ'},
+    {day:12,phase:1,subjects:[{tag:'C',code:'C2',text:'<strong>পরিমাণগত রসায়ন</strong> (অধ্যায় ৩) — molarity, titration.'},{tag:'B',code:'B2',text:'<strong>জিন তত্ত্ব ও বিবর্তন</strong> (অধ্যায় ১১)'},{tag:'M',code:'M2',text:'<strong>বাস্তব সংখ্যা ও অসমতা</strong> (অধ্যায় ১) + <strong>যোগাশ্রয়ী প্রোগ্রাম</strong> (অধ্যায় ২) ✅ M2 শেষ'}],practice:'C2 তড়িৎ রসায়ন — 25 MCQ + 2 CQ'},
+    {day:13,phase:1,subjects:[{tag:'C',code:'C2',text:'<strong>অর্থনৈতিক রসায়ন</strong> (অধ্যায় ৫) — polymer, cement, fertilizer ✅ C2 শেষ'},{tag:'B',code:'B2',text:'<strong>প্রাণীর আচরণ</strong> (অধ্যায় ১২) ✅ B2 শেষ'},{tag:'P',code:'P2',text:'<strong>P2 দুর্বল অধ্যায় রিক্যাপ</strong> — স্থির তড়িৎ ও জ্যামিতিক আলোক'}],practice:'C2 পরিমাণগত — 25 MCQ + 2 CQ'},
+    {day:14,phase:1,subjects:[{tag:'P',code:'P2',text:'<strong>P2 Full MCQ Blast</strong> — 100 MCQ সব অধ্যায়'},{tag:'M',code:'M2',text:'<strong>M2 রিভিশন</strong> — জটিল সংখ্যা, কণিক, স্থিতিবিদ্যা'}],practice:'B2 জিন তত্ত্ব — 30 MCQ + 2 CQ'},
+    {day:15,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>নিউটনিয়ান বলবিদ্যা</strong> (অধ্যায় ৪) — Newton laws, friction.'},{tag:'C',code:'C1',text:'<strong>গুণগত রসায়ন</strong> (অধ্যায় ২) — আয়ন শনাক্তকরণ.'},{tag:'B',code:'B1',text:'<strong>কোষ ও এর গঠন</strong> (অধ্যায় ১)'}],practice:'P2 MCQ Blast — 30 MCQ'},
+    {day:16,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>কাজ, শক্তি ও ক্ষমতা</strong> (অধ্যায় ৫) — work-energy theorem.'},{tag:'M',code:'M1',text:'<strong>ম্যাট্রিক্স ও নির্ণায়ক</strong> (অধ্যায় ১)'},{tag:'B',code:'B1',text:'<strong>কোষ বিভাজন</strong> (অধ্যায় ২)'}],practice:'P1 নিউটনিয়ান — 30 MCQ + 2 CQ'},
+    {day:17,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>গতিবিদ্যা</strong> (অধ্যায় ৩) — equations of motion, projectile.'},{tag:'C',code:'C1',text:'<strong>পর্যায়বৃত্ত ধর্ম ও বন্ধন</strong> (অধ্যায় ৩)'},{tag:'M',code:'M1',text:'<strong>ভেক্টর</strong> (অধ্যায় ২) + <strong>সরলরেখা</strong> (অধ্যায় ৩)'}],practice:'P1 কাজ-শক্তি — 25 MCQ + 2 CQ'},
+    {day:18,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>তরঙ্গ</strong> (অধ্যায় ৯) — wave, sound, resonance.'},{tag:'M',code:'M1',text:'<strong>বৃত্ত</strong> (অধ্যায় ৪) — equation, tangent.'},{tag:'B',code:'B1',text:'<strong>কোষ রসায়ন</strong> (অধ্যায় ৩)'}],practice:'P1 গতিবিদ্যা — 30 MCQ + 2 CQ'},
+    {day:19,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>পর্যাবৃত্ত গতি</strong> (অধ্যায় ৮) — SHM, pendulum.'},{tag:'C',code:'C1',text:'<strong>রাসায়নিক পরিবর্তন</strong> (অধ্যায় ৪) — kinetics, pH, buffer.'},{tag:'B',code:'B1',text:'<strong>অণুজীব</strong> (অধ্যায় ৪)'}],practice:'P1 তরঙ্গ — 25 MCQ + 2 CQ'},
+    {day:20,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>মহাকর্ষ ও অভিকর্ষ</strong> (অধ্যায় ৬) — gravitation, escape velocity.'},{tag:'M',code:'M1',text:'<strong>বিন্যাস ও সমাবেশ</strong> (অধ্যায় ৫)'},{tag:'B',code:'B1',text:'<strong>শৈবাল ও ছত্রাক</strong> (অধ্যায় ৫)'}],practice:'C1 রাসায়নিক পরিবর্তন — 30 MCQ + 2 CQ'},
+    {day:21,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>আদর্শ গ্যাস</strong> (অধ্যায় ১০) — ideal gas law.'},{tag:'M',code:'M1',text:'<strong>ত্রিকোণমিতিক অনুপাত</strong> (অধ্যায় ৬) — values, identities.'},{tag:'B',code:'B1',text:'<strong>ব্রায়োফাইটা ও টেরিডোফাইটা</strong> (অধ্যায় ৬)'}],practice:'P1 মহাকর্ষ — 20 MCQ + 1 CQ'},
+    {day:22,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>ভেক্টর</strong> (অধ্যায় ২) — addition, dot/cross.'},{tag:'C',code:'C1',text:'<strong>কর্মমুখী রসায়ন</strong> (অধ্যায় ৫) — ধাতু নিষ্কাশন, সার.'},{tag:'B',code:'B1',text:'<strong>নগ্নবীজী ও আবৃতবীজী</strong> (অধ্যায় ৭)'}],practice:'M1 ত্রিকোণমিতি — 20 MCQ + 2 CQ'},
+    {day:23,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>পদার্থের গাঠনিক ধর্ম</strong> (অধ্যায় ৭) — elasticity, viscosity.'},{tag:'M',code:'M1',text:'<strong>সংযুক্ত কোণের ত্রিকোণমিতি</strong> (অধ্যায় ৭)'},{tag:'B',code:'B1',text:'<strong>টিস্যু ও টিস্যুতন্ত্র</strong> (অধ্যায় ৮)'}],practice:'C1 কর্মমুখী — 25 MCQ + 2 CQ'},
+    {day:24,phase:2,subjects:[{tag:'P',code:'P1',text:'<strong>ভৌতজগৎ ও পরিমাপ</strong> (অধ্যায় ১) — SI units, errors. ✅ P1 শেষ'},{tag:'M',code:'M1',text:'<strong>ফাংশন ও লেখচিত্র</strong> (অধ্যায় ৮)'},{tag:'B',code:'B1',text:'<strong>উদ্ভিদ শরীরতত্ত্ব</strong> (অধ্যায় ৯)'}],practice:'P1 গাঠনিক ধর্ম — 20 MCQ + 1 CQ'},
+    {day:25,phase:2,subjects:[{tag:'C',code:'C1',text:'<strong>ল্যাবরেটরির নিরাপদ ব্যবহার</strong> (অধ্যায় ১) ✅ C1 শেষ'},{tag:'B',code:'B1',text:'<strong>উদ্ভিদ প্রজনন</strong> (অধ্যায় ১০) ✅ B1 শেষ'},{tag:'M',code:'M1',text:'<strong>অন্তরীকরণ</strong> (অধ্যায় ৯) — chain rule, maxima-minima.'}],practice:'M1 ফাংশন — 20 MCQ'},
+    {day:26,phase:2,subjects:[{tag:'M',code:'M1',text:'<strong>অন্তরীকরণ গভীর practice</strong> — implicit, parametric, higher derivatives.'}],hard:true,practice:'M1 অন্তরীকরণ — 5 CQ + 30 MCQ',note:'⚠️ আজ শুধু অন্তরীকরণ'},
+    {day:27,phase:2,subjects:[{tag:'M',code:'M1',text:'<strong>যোগজীকরণ</strong> (অধ্যায় ১০) — substitution, by parts, definite integral.'}],hard:true,practice:'M1 অন্তরীকরণ deep — 5 CQ + 30 MCQ',note:'⚠️ আজ শুধু যোগজীকরণ'},
+    {day:28,phase:2,subjects:[{tag:'M',code:'M1',text:'<strong>ত্রিকোণমিতি সম্পূর্ণ</strong> — M1 অধ্যায় ৬+৭ + M2 অধ্যায় ৭ (বিপরীত ও সমীকরণ)'}],hard:true,practice:'M1 যোগজীকরণ — 5 CQ + 30 MCQ',note:'⚠️ আজ শুধু ত্রিকোণমিতি'},
+    {day:29,phase:2,subjects:[{tag:'M',code:'M1',text:'<strong>ম্যাট্রিক্স ও নির্ণায়ক</strong> (অধ্যায় ১) — গভীর practice'},{tag:'M',code:'M1',text:'<strong>বিন্যাস ও সমাবেশ</strong> (অধ্যায় ৫) + <strong>ফাংশন</strong> (অধ্যায় ৮)'},{tag:'P',code:'P1',text:'<strong>P1 রিভিশন</strong> — নিউটনিয়ান + কাজ-শক্তি + গতিবিদ্যা'}],practice:'M1 ত্রিকোণমিতি — 30 MCQ + 3 CQ'},
+    {day:30,phase:3,subjects:[{tag:'P',code:'P1',text:'<strong>P1 রিভিশন</strong> — তরঙ্গ + পর্যাবৃত্ত + মহাকর্ষ'},{tag:'C',code:'C1',text:'<strong>C1 রিভিশন</strong> — গুণগত + বন্ধন MCQ'},{tag:'B',code:'B1',text:'<strong>B1 রিভিশন</strong> — কোষ ১-৫ + ডায়াগ্রাম'}],practice:'M1 ম্যাট্রিক্স — 20 MCQ + 2 CQ'},
+    {day:31,phase:3,subjects:[{tag:'P',code:'P2',text:'<strong>P2 রিভিশন</strong> — স্থির তড়িৎ + চলতড়িৎ + চৌম্বক'},{tag:'C',code:'C2',text:'<strong>C2 রিভিশন</strong> — জৈব + তড়িৎ রসায়ন'},{tag:'B',code:'B2',text:'<strong>B2 রিভিশন</strong> — পরিপাক + রক্ত + শ্বসন'}],practice:'P1 তরঙ্গ — 30 MCQ + 2 CQ'},
+    {day:32,phase:3,subjects:[{tag:'M',code:'M1',text:'<strong>M1 Full CQ</strong> — অন্তরীকরণ + যোগজীকরণ + ত্রিকোণমিতি'},{tag:'C',code:'C1',text:'<strong>C1 CQ Blast</strong> — রাসায়নিক পরিবর্তন + গুণগত'}],practice:'P2 তড়িৎ সিরিজ — 30 MCQ + 2 CQ'},
+    {day:33,phase:3,subjects:[{tag:'M',code:'M2',text:'<strong>M2 Full CQ</strong> — জটিল সংখ্যা + বহুপদী + কণিক + স্থিতিবিদ্যা'},{tag:'C',code:'C2',text:'<strong>C2 CQ Blast</strong> — জৈব + তড়িৎ'}],practice:'B2 জিন তত্ত্ব — 25 MCQ + 2 CQ'},
+    {day:34,phase:3,subjects:[{tag:'P',code:'P1',text:'<strong>P1 Full MCQ</strong> — 100 MCQ সব অধ্যায়'},{tag:'B',code:'B1',text:'<strong>B1 ডায়াগ্রাম ও চিত্র</strong> — মাইটোসিস, শরীরতত্ত্ব'}],practice:'M2 সব — 30 MCQ + 3 CQ'},
+    {day:35,phase:3,subjects:[{tag:'P',code:'P2',text:'<strong>P2 Full MCQ</strong> — 100 MCQ সব অধ্যায়'},{tag:'B',code:'B2',text:'<strong>B2 ডায়াগ্রাম</strong> — হৃৎপিণ্ড, কিডনি, নিউরন'}],practice:'P1 MCQ Blast — 30 MCQ'},
+    {day:36,phase:3,subjects:[{tag:'M',code:'M1',text:'<strong>M1 Full MCQ</strong> — 80 MCQ সব অধ্যায়'},{tag:'C',code:'C1',text:'<strong>C1 Full MCQ</strong> — 50 MCQ'}],practice:'P2 MCQ Blast — 30 MCQ'},
+    {day:37,phase:3,subjects:[{tag:'M',code:'M2',text:'<strong>M2 Full MCQ</strong> — 80 MCQ সব অধ্যায়'},{tag:'C',code:'C2',text:'<strong>C2 Full MCQ</strong> — 50 MCQ'}],practice:'B1+B2 ডায়াগ্রাম — 30 MCQ'},
+    {day:38,phase:3,subjects:[{tag:'P',code:'P1+P2',text:'<strong>পদার্থ সারসংক্ষেপ</strong> — সব formula এক নজর'},{tag:'C',code:'C1+C2',text:'<strong>রসায়ন সারসংক্ষেপ</strong> — জৈব রূপান্তর + pH'},{tag:'B',code:'B1+B2',text:'<strong>জীববিজ্ঞান সারসংক্ষেপ</strong> — ডায়াগ্রাম + জিন সমস্যা'},{tag:'M',code:'M1+M2',text:'<strong>গণিত সারসংক্ষেপ</strong> — formula sheet'}],practice:'সব বিষয় — 50 MCQ + 3 CQ'},
+    {day:39,phase:3,subjects:[{tag:'P',code:'P',text:'<strong>P1+P2 দুর্বল টপিক</strong> — numerical practice'},{tag:'C',code:'C',text:'<strong>C1+C2 দুর্বল টপিক</strong> — জৈব রূপান্তর'}],practice:'M1+M2 — 40 MCQ'},
+    {day:40,phase:3,subjects:[{tag:'M',code:'M',text:'<strong>M1+M2 দুর্বল টপিক</strong> — ক্যালকুলাস ও ত্রিকোণমিতি'},{tag:'B',code:'B',text:'<strong>B1+B2 দুর্বল টপিক</strong> — জিন ও বিবর্তন'}],practice:'P1+P2 — 40 MCQ'},
+    {day:41,phase:3,subjects:[{tag:'P',code:'P',text:'<strong>বোর্ড প্রশ্ন সমাধান</strong> — P1+P2 2017-2025'},{tag:'C',code:'C',text:'<strong>বোর্ড প্রশ্ন সমাধান</strong> — C1+C2'}],practice:'B1+B2 — 30 MCQ + 2 CQ'},
+    {day:42,phase:3,subjects:[{tag:'M',code:'M',text:'<strong>বোর্ড প্রশ্ন সমাধান</strong> — M1+M2 2017-2025'},{tag:'B',code:'B',text:'<strong>বোর্ড প্রশ্ন সমাধান</strong> — B1+B2'}],practice:'P1+P2 — 30 MCQ + 2 CQ'},
+    {day:43,phase:3,subjects:[{tag:'P',code:'P',text:'<strong>Mock Test</strong> — P1+P2 (3 ঘন্টা)'},{tag:'C',code:'C',text:'<strong>Mock Test</strong> — C1+C2'}],practice:'M1+M2 — 40 MCQ'},
+    {day:44,phase:3,subjects:[{tag:'M',code:'M',text:'<strong>Mock Test</strong> — M1+M2 (3 ঘন্টা)'},{tag:'B',code:'B',text:'<strong>Mock Test</strong> — B1+B2'}],practice:'সব — 50 MCQ + 2 CQ'},
+    {day:45,phase:3,subjects:[{tag:'P',code:'P',text:'<strong>ফাইনাল রিভিউ</strong> — সব formula + numerical'},{tag:'C',code:'C',text:'<strong>ফাইনাল রিভিউ</strong> — জৈব + pH গণনা'},{tag:'B',code:'B',text:'<strong>ফাইনাল রিভিউ</strong> — ডায়াগ্রাম + জিন'},{tag:'M',code:'M',text:'<strong>ফাইনাল রিভিউ</strong> — formula sheet + ১ CQ'}],final:true,practice:'🎯 সম্পূর্ণ সিলেবাস শেষ — পরীক্ষার জন্য প্রস্তুত!'}
+  ];
 
-    /* ─────────────── QUOTES ─────────────── */
-    const quotes = [ { t: "Success is the sum of small efforts, repeated day in and day out.", a: "Robert Collier" }, { t: "The secret of getting ahead is getting started — start right now.", a: "Mark Twain" }, { t: "Don't watch the clock. Do what it does — keep going.", a: "Sam Levenson" }, { t: "Your future is created by what you do today, not tomorrow.", a: "Robert Kiyosaki" }, { t: "Believe you can and you're halfway there.", a: "Theodore Roosevelt" }, { t: "Push yourself, because no one else is going to do it for you.", a: "Unknown" } ];
-    let qi = 0; const qtEl = document.getElementById('qt'), qaEl = document.getElementById('qa');
-    function nextQuote() { const q = quotes[qi % quotes.length]; qtEl.style.opacity = '0'; qtEl.style.transform = 'translateY(8px)'; setTimeout(() => { qtEl.textContent = '“' + q.t + '”'; qaEl.textContent = '— ' + q.a; qtEl.style.opacity = '1'; qtEl.style.transform = ''; }, 400); qi++; }
-    nextQuote(); setInterval(nextQuote, 9500);
+  function renderAllDays() {
+    const container = document.getElementById('routine-content');
+    container.innerHTML = '';
+    const phases = {
+      1:{title:'PHASE 1 — ২য় পত্র Foundation',sub:'Day 1–14 | P2, C2, B2, M2 সম্পূর্ণ',icon:'🔵',bg:'rgba(79,158,255,0.1)'},
+      2:{title:'PHASE 2 — ১ম পত্র ও কঠিন গণিত',sub:'Day 15–29 | P1, C1, B1, M1 + Hard Math',icon:'🟡',bg:'rgba(245,158,11,0.1)'},
+      3:{title:'PHASE 3 — ফাইনাল রিভিশন ও মক টেস্ট',sub:'Day 30–45 | সব বিষয় পূর্ণাঙ্গ প্রস্তুতি',icon:'🔁',bg:'rgba(248,113,113,0.1)'}
+    };
+    [1,2,3].forEach(pid => {
+      const days = routineDays.filter(d => d.phase === pid);
+      if (!days.length) return;
+      const phaseDiv = document.createElement('div');
+      const open = getPhaseState(pid);
+      phaseDiv.innerHTML = `
+        <div class="phase-header ${open?'open':''}" id="phase-header-${pid}" onclick="togglePhase(${pid})">
+          <div class="phase-icon" style="background:${phases[pid].bg}">${phases[pid].icon}</div>
+          <div><div class="phase-title">${phases[pid].title}</div><div class="phase-sub">${phases[pid].sub}</div></div>
+          <div class="phase-badge">Day ${days[0].day}–${days[days.length-1].day}</div>
+        </div>
+        <div class="days-grid ${open?'expanded':'collapsed'}" id="phase-grid-${pid}"></div>`;
+      container.appendChild(phaseDiv);
+      const grid = phaseDiv.querySelector('.days-grid');
+      days.forEach(d => {
+        const card = document.createElement('div');
+        card.className = 'day-card' + (d.hard?' hard':'') + (d.final?' final-day-card':'') + (isDayCompleted(d.day)?' completed':'');
+        card.innerHTML = `
+          <div class="day-check${isDayCompleted(d.day)?' checked':''}" data-day="${d.day}" onclick="event.stopPropagation();toggleDay(${d.day})">${isDayCompleted(d.day)?'✓':''}</div>
+          <div class="day-header"><div class="day-num">DAY <span>${String(d.day).padStart(2,'0')}</span></div>${d.hard?'<div class="hard-badge">🔴 কঠিন দিন</div>':''}</div>
+          <div class="day-body">
+            ${d.subjects.map(s => `<div class="subject-row"><span class="subj-tag ${s.tag}">${s.code}</span><div class="chapter-text">${s.text}</div></div>`).join('')}
+            ${d.note ? `<div class="note-chip">${d.note}</div>` : ''}
+            ${d.practice ? `<div class="practice-row"><div class="practice-icon">✏️</div><div class="practice-text"><strong>Practice:</strong> ${d.practice}</div></div>` : ''}
+          </div>`;
+        grid.appendChild(card);
+      });
+    });
+    updateCompletedCount();
+  }
 
-    /* ─────────────── i18n ─────────────── */
-    const i18n = { en: { theme:'DARK',lang:'বাংলা',localTime:'Local Time',todayDate:'Today\'s Date',weather:'Weather',badge:'HSC 2026 Coming — Study Now',mission:'MISSION',comingOn:'COMING ON →',days:'Days',hours:'Hours',minutes:'Minutes',seconds:'Seconds',progress:'OVERALL PROGRESS',hoursLeft:'Hours Left',minutesLeft:'Minutes Left',weeksLeft:'Weeks Left',secondsLeft:'Seconds Left',missionAccomplished:'MISSION<br>ACCOMPLISHED',examDay:'HSC 2026 — EXAM DAY HAS ARRIVED',targetDate:'2 JULY 2026 — 10:00 AM' }, bn: { theme:'DARK',lang:'English',localTime:'স্থানীয় সময়',todayDate:'আজকের তারিখ',weather:'আবহাওয়া',badge:'এইচএসসি ২০২৬ আসছে — এখনই পড়ুন',mission:'মিশন',comingOn:'শুরু হচ্ছে →',days:'দিন',hours:'ঘন্টা',minutes:'মিনিট',seconds:'সেকেন্ড',progress:'সার্বিক অগ্রগতি',hoursLeft:'বাকি ঘন্টা',minutesLeft:'বাকি মিনিট',weeksLeft:'বাকি সপ্তাহ',secondsLeft:'বাকি সেকেন্ড',missionAccomplished:'মিশন<br>সফল',examDay:'এইচএসসি ২০২৬ — পরীক্ষার দিন এসে গেছে',targetDate:'২ জুলাই ২০২৬ — সকাল ১০:০০' } };
-    let currentLang = 'en'; function i18nText(key) { return i18n[currentLang][key] || key; }
-    function updateUIText() { document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (key) el.textContent = i18nText(key); }); document.getElementById('targetDateDisplay').textContent = i18nText('targetDate'); document.querySelector('#langToggle span').textContent = i18nText('lang'); document.querySelector('#themeToggle span').textContent = i18nText('theme'); document.querySelector('.badge span').textContent = i18nText('badge'); }
-    document.getElementById('langToggle').addEventListener('click', () => { currentLang = currentLang === 'en' ? 'bn' : 'en'; document.documentElement.lang = currentLang; updateUIText(); });
-
-    /* ─────────────── THEME ─────────────── */
-    const themeToggle = document.getElementById('themeToggle'), body = document.body, themeIcon = themeToggle.querySelector('i');
-    function setTheme(isDark) { if (isDark) { body.classList.add('dark-mode'); body.classList.remove('light-mode'); themeIcon.textContent = '☀️'; themeToggle.querySelector('span').textContent = 'LIGHT'; } else { body.classList.remove('dark-mode'); body.classList.add('light-mode'); themeIcon.textContent = '🌙'; themeToggle.querySelector('span').textContent = 'DARK'; } }
-    setTheme(false); themeToggle.addEventListener('click', () => { setTheme(!body.classList.contains('dark-mode')); });
-    updateUIText();
-  })();
+  renderAllDays();
+  window.toggleDay = toggleDay;
+  window.togglePhase = togglePhase;
+  window.resetAllProgress = resetAllProgress;
+})();
 </script>
 </body>
 </html>
